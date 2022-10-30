@@ -1,0 +1,60 @@
+//Arachnit's super duper cool MLG vmt config, donut steal plz. :(
+
+"VertexLitGeneric"
+{
+//Basic
+	"$BaseTexture" 			    "models/arachnit/wolfenstein2/nazis/nazi_scientist/scientist_helmet_row_c"
+	"$BumpMap" 				    "models/arachnit/wolfenstein2/nazis/nazi_scientist/scientist_helmet_row_n"
+	"$PhongExponentTexture"     "models/arachnit/wolfenstein2/nazis/nazi_scientist/scientist_helmet_row_s"
+
+//Warp
+	"$LightWarpTexture"         "models/arachnit/shared/clothes_wrp2"		//< Change as needed
+//	"$PhongWarpTexture"         "models/arachnit/shared/ctm_specwarp" 		//< Change as needed
+
+//Phong
+	"$Phong"				    "1"
+	"$PhongBoost"               "1" 	//< Change as needed
+	"$PhongExponent"            "10" 	//< $PhongExponent overrides $PhongExponentTexture !!!
+	"$PhongFresnelRanges"	    "[0.3 0.6 1]"
+//	"$PhongTint" 			    "[.85 .85 1]"
+	"$PhongDisableHalfLambert"  "0"
+	"$PhongAlbedoTint"          "1"
+	"$PhongAlbedoBoost"         "3"
+	"$NormalmapAlphaPhongMask"  "1"
+	"$ForcePhong"				"1"
+
+//Rimlight
+	"$Rimlight" 			    "0"
+	"$RimMask" 				    "1"
+	"$RimlightExponent"         "6"
+	"$RimlightBoost"            "0.3"
+	"$RimlightAlbedo"           "0.6"
+	"$RimlightTint"             "[0.8 1.0 1.2]"
+
+//Environment map / Reflection
+//	"$Envmap"                   "env_cubemap"
+	"$EnvmapTint" 			    "[ 0.05 0.05 0.05 ]"
+	"$EnvmapSaturation"         "-0.6"
+	"$EnvmapContrast" 		    "1"
+	"$EnvmapLightScale"         "0.18"
+	"$NormalmapAlphaEnvmapMask" "1"
+
+//Other
+	"$Model"                    "1"
+	"$HalfLambert" 			    "1"
+	"$NoDecal" 				    "0"
+	"$NoLod" 				    "0"
+	"$AmbientOcclusion" 	    "1"
+	"$NoCull" 				    "0"
+	"$SurfaceProp" 			    "flesh"
+//	"$Color2"					"{ 185 185 185 }"	//< RGB colors
+	"$CloakPassEnabled" 		"1" 	//< For SFM and TF2
+//	"$CloakColorTint" 			"[0.4 0.5 1]" // BLU
+//	"$CloakColorTint" 			"[1 0.5 0.4]" // RED
+
+//Detail
+	"$Detail" 				  	  "models/arachnit/shared/leatherdetail" 	//< Change as needed
+	"$DetailScale" 			  	  "12"
+	"$DetailBlendFactor" 	  	  "3"
+	"$DetailBlendMode" 		   	  "0"
+}

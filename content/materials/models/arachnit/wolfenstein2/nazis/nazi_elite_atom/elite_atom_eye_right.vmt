@@ -1,0 +1,27 @@
+"EyeRefract"
+{
+	"$Iris" "models/arachnit/wolfenstein2/nazis/nazi_elite_atom/common_eye"
+	"$AmbientOcclTexture" "models/arachnit/shared/eyeball_ao"
+	"$Envmap" "Engine/eye-reflection-cubemap-"
+	"$CorneaTexture" "models/arachnit/shared/eye-cornea"
+	"$LightWarpTexture" "models/arachnit/shared/eye_lightwarp"
+
+"$Irisframe" "0"
+"$EyeballRadius" "0.5"
+"$AmbientOcclColor" "[0.4 0.3 0.27]"
+"$Dilation" "0.75"
+"$Glossiness" "1.0"
+"$ParallaxStrength" "0.25"
+"$CorneaBumpStrength" "1.0"
+"$HalfLambert" "1"
+"$NoDecal" "0"
+"$AmbientOcclusion" "0"
+"$RaytraceSphere" "1"
+"$SphereTexkillCombo" "0"
+
+	"Eyes_DX8"
+	{
+		"$BaseTexture" "models/gman/eyeball_l"
+		"$Iris" "models/breen/pupil_l"
+	}
+}

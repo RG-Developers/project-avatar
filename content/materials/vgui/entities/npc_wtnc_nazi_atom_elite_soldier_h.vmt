@@ -1,0 +1,5 @@
+"UnlitGeneric"
+{
+	"$basetexture" "vgui/entities/npc_wtnc_nazi_atom_elite_soldier_h"
+	"$nolod" 1
+}
