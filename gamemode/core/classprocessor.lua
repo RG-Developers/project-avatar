@@ -79,20 +79,19 @@ if SERVER then
     function removeBug(bug)
         if coroutine.running() == nil then
             coroutine.resume(bugparsers[bug], true)
-            coroutine.resume(bugparsers[bug], true)
-            coroutine.resume(bugparsers[bug], true)
+        else
+            CreateSound(bug, "/project_avatar/bugs/bugfix_"..math.random(1,2)..".wav"):Play()
+            bugs[bug]['leak']:Remove()
+            bugs[bug]['bug']:Remove()
+            --bugssounds[bug]:Stop()
+            bugs[bug] = "collected"
+            bug:Remove()
+            bugcount = bugcount - 1
+            bugparsers[bug] = nil
+            net.Start("updateBugs")
+                net.WriteTable(bugs)
+            net.Broadcast()
         end
-        CreateSound(bug, "/project_avatar/bugs/bugfix_"..math.random(1,2)..".wav"):Play()
-        bugs[bug]['leak']:Remove()
-        bugs[bug]['bug']:Remove()
-        --bugssounds[bug]:Stop()
-        bugs[bug] = "collected"
-        bug:Remove()
-        bugcount = bugcount - 1
-        bugparsers[bug] = nil
-        net.Start("updateBugs")
-            net.WriteTable(bugs)
-        net.Broadcast()
     end
 
     hook.Add("Think", "Scientist_Tasker", function() 
@@ -124,7 +123,8 @@ if SERVER then
             if CurTime() > bugcreatetime then
                 bugcreatetime = CurTime() + 1
                 if bugcount < GetGlobalInt("TestersCount") then
-                    if math.random(0, 100) > 95 then
+                    if math.random(0, 100) > 0 then
+                        print(1)
                         isspec = math.random(0,5) > 4
                         local zpvalid, zmvalid, isinworld = false, false, false
                         while (zpvalid and zmvalid and isinworld) == false do
@@ -175,17 +175,14 @@ if SERVER then
                                             snd:Play()
                                             nextplay = CurTime() + 7
                                         end
-                                        if coroutine.yield() then break end
+                                        if coroutine.yield() then
+                                            break
+                                        end
                                     end
-                                    CreateSound(bug, "/project_avatar/bugs/bugtimeout.wav"):Play()
+                                    snd:Stop()
+                                    if CurTime() >= time then CreateSound(bug, "/project_avatar/bugs/bugtimeout.wav"):Play() end
                                     removeBug(entity)
                                 end )
-                                function bug:OnTakeDamage( dmginfo )
-                                    SetGlobalInt("TestersScore", GetGlobalInt("TestersScore") + math.floor(bugs[entity]['score']))
-                                    --SetGlobalInt("ScientistsScore", GetGlobalInt("ScientistsScore") -  math.floor(bugs[entity]['score']))
-                                    CreateSound(entity, "/project_avatar/bugs/playerpickupbug_"..math.random(1,3)..".wav"):Play()
-                                    removeBug(entity)
-                                end
                                 coroutine.resume(bugparsers[bug], bug, CurTime() + math.random(20, 120))
                                 CreateSound(bug, "/project_avatar/bugs/bugspawn_"..math.random(1,3)..".wav"):Play()
                                 net.Start("updateBugs")
@@ -218,9 +215,11 @@ if SERVER then
 
 
 
-    net.Receive("abilityUse", function(_, ply)
+    net.Receive("abilityUse", function()
+        ply = net.ReadEntity()
         plysubclass = GetSubClass(ply)
         plyclass = ply:Team()
+        print("gotcha")
         if plyclass ~= 3 then
             ply:kick("Invalid ability packet: abilityUse with team #" .. ply:Team())
             return
@@ -254,6 +253,11 @@ if SERVER then
         end
         SetGlobalInt("ScientistsScore", GetGlobalInt("ScientistsScore") + 10)
     end)
+    timer.Create("AbilReady", 5, 0, function() 
+        for _, ply in pairs(player:GetAll()) do
+            if GetGlobalBool(ply:Name() .. "_abilReady") then continue end
+            SetGlobalBool(ply:Name() .. "_abilReady", true)
+            ply:PrintMessage(HUD_PRINTTALK, "Ability ready!")
+        end
+    end)
 end
-
---запускай серв вроде всё починил
