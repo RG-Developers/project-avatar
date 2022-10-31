@@ -101,9 +101,9 @@ if SERVER then
                 taskcreatetime = taskcreatetime + 1
                 if math.random(0, 100) > 95 then
                     if GetGlobalInt("ScientistsCount") < 1 then return end
-                    ply = player:GetAll()[math.random(GetGlobalInt("ScientistsCount"))]
+                    ply = player:GetAll()[math.random(1, player:GetCount())]
                     while ply:Team() ~= TEAM_SCIENTISTS do
-                        ply = player:GetAll()[math.random(GetGlobalInt("ScientistsCount"))]
+                        ply = player:GetAll()[math.random(1, player:GetCount())]
                     end
                     if GetScientistTask(ply) == "none" then
                         SetScientistTask(ply, tasks[math.random(1, #tasks)])
@@ -233,8 +233,7 @@ if SERVER then
             while rpl:Team() ~= 1 do
                 rpl = players[math.random(1, #players+1)]
             end
-            tasks = GetScientistTasks(rpl)
-            OnTaskRuined(rpl, tasks[math.random(1, #tasks+1)])
+            OnTaskRuined(rpl)
         elseif plysubclass == 2 then -- циркуль
             net.Start("updateBugs")
                 net.WriteTable(bugs)
@@ -247,6 +246,13 @@ if SERVER then
             collectBug(ply:GetEyeTrace().Entity)
             ply:ViewPunch(Angle(1,1,1))
         end
+    end)
+
+    net.Receive("TaskCompleted", function(_, ply)
+        if GetScientistTask(ply) == "fixbugtask" then 
+            removeBug(bugs[math.random(1, #bugs)])
+        end
+        SetGlobalInt("ScientistsScore", GetGlobalInt("ScientistsScore") + 10)
     end)
 end
 

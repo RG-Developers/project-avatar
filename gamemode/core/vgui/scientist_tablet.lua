@@ -4,6 +4,7 @@ local Tablet = {}
 
 local waitcoro
 local reportready = false
+local asfixer = false
 
 local log = {"FRACTALOS v1.0", 
             "TYPE 'HELP' FOR LIST OF COMMANDS",
@@ -186,7 +187,7 @@ function Tablet:Init()
                 net.SendToServer()
                 task = ""
             end
-        elseif task == "bugfixtask" then
+        elseif task == "fixbugtask" then
             if command == "AUTOFIX" then
                 coutprint("Autofix fixed ScriptedEntity error. Task completed")
                 net.Start("TaskComplete")
@@ -241,10 +242,11 @@ net.Receive("StartVote", function()
     coutprint("Scientist #"..id.."("..voted..") voted for server start.")
 end)
 net.Receive("NewTask", function()
-    print(LocalPlayer())
-    task = GetScientistTask(LocalPlayer())
     local servers = {"fractal.gov", "restricted.server:22", "fractalhub.gov"}
-    coutprint("New task received from " .. servers[math.random(1, #servers)] .. ". Task name: " .. task)
+    coutprint("New task received from " .. servers[math.random(1, #servers)])
+end)
+net.Receive("TaskRuined", function()
+    coutprint("Task ruined...")
 end)
 net.Receive("SetClass", function()
     local plclass = net.ReadInt(3)
