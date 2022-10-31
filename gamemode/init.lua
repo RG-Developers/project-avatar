@@ -53,9 +53,18 @@ if not team_select_allowed then
 		end
 		ply:KillSilent()
 		ply:Spawn()
+		if ply:Team() == TEAM_SCIENTISTS then 
+
+		end
 	end
 end
 function GM:PlayerSpawn(ply)
+
+	if ply:Team() == TEAM_SCIENTISTS and GetConVar("scientists_not_on_map"):GetBool() then 
+		ply:SetPos(0,0,90000)
+		return
+	end
+
 	if debuggm then 
 		ply:Give("weapon_pistol")
 		ply:GiveAmmo(9999, "Pistol", true)
@@ -135,7 +144,8 @@ function GM:PlayerDeath(ply, _, _)
 		end
 		ply:GetRagdollEntity():Remove()
 		MakeLight(0, 255, 0, 255, 500, brainmelt)
-		--ply:SetTeam(TEAM_SPECTATOR)
+		ply:SetObserverMode(OBS_MODE_IN_EYE)
+		ply:Spectate(OBS_MODE_IN_EYE)
 		local coro = coroutine.create(function(model, freeze) 
 			while CurTime() < freeze do coroutine.yield() end
 			local mainbone = model:TranslateBoneToPhysBone( 10 )
@@ -253,6 +263,21 @@ net.Receive("SetClass", function(_, ply)
 		net.WriteInt(class, 3)
 		net.WriteString(tester:Name())
 	net.SendOmit(ply)
+end)
+util.AddNetworkString("SetTeam")
+net.Receive("SetTeam", function(_, ply)
+	local team = net.ReadInt(4)
+	local retback = net.ReadBool()
+	if retback then
+		local coro = coroutine.create(function(ply, etime) 
+			local oldteam = ply:Team()
+			while CurTime() < etime do coroutine.yield() end
+			ply:SetTeam(oldteam)
+		end)
+		coroutine.resume(coro, ply, CurTime() + 60*5)
+		coroutines[ply:EntIndex()+2000] = coro
+	end
+	SetClass(ply, team, 0)
 end)
 --[[
 net.Receive("WepSelect", function(_, ply) 

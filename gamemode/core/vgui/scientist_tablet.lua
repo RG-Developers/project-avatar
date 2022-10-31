@@ -3,6 +3,7 @@ local scn_tbl = Material("project_avatar/hud/sc/tablet.png")
 local Tablet = {}
 
 local waitcoro
+local reportready = false
 
 local log = {"FRACTALOS v1.0", 
             "TYPE 'HELP' FOR LIST OF COMMANDS",
@@ -114,8 +115,6 @@ function Tablet:Init()
     end 
     self.Entry.OnEnter = function()
         task = GetScientistTask(LocalPlayer())
-        print(LocalPlayer())
-        print(task)
         --surface.PlaySound("bin/enter" .. math.random(1,3) .. ".wav")
         entry = string.Explode(" ", self.Entry:GetValue())
         local command = string.upper(entry[1])
@@ -131,8 +130,18 @@ function Tablet:Init()
                 coutprint("SCL [NAME] [CLASSID] - SET TESTER CLASS.")
                 coutprint("START - VOTE FOR SERVER START")
             end
-            if task then
+            if task and task ~= "none" then
                 coutprint("TASK - SHOW INFO ABOUT CURRENT TASK")
+                if task == "simpletask" then 
+                    coutprint("COMPLETE - COMPLETE SIMPLE TASK")
+                end
+                if task == "getinftask" then 
+                    coutprint("MAKEREPORT - MAKE REPORT ABOUT SERVER READY TO SEND TO FRACTAL SERVERS")
+                    coutprint("SENDREPORT - SEND REPORT TO FRACTAL SERVERS")
+                end
+                if task == "fixbug" then 
+                    coutprint("AUTOFIX - RUN AUTOMATIC BUG FIXER")
+                end
             end
         elseif command == "ECHO" then
             coutprint(table.concat(entry," "))
@@ -155,15 +164,42 @@ function Tablet:Init()
                 return
             end
             terminal_runningapp = "rtcam"
+        elseif command == "ASFIXER" then
+            if asfixer == false then
+                coutprint("Are you really sure that you want to connect to server as fixer? Type this command again if you sure. Time on server limit: 5 minutes")
+                asfixer = true
+            else
+                net.Start("SetTeam")
+                    net.WriteInt(6, 4)
+                    net.WriteBool(true)
+                net.SendToServer()
+                asfixer = false
+            end
         elseif command == "TASK" then
             coutprint(task)
-        elseif command == "COMPLETE" then
-            if task == "example_task" then
-                coutprint("Example task completed")
+        elseif task == "simpletask" then
+            if command == "COMPLETE" then
+                coutprint("Simple task completed")
                 net.Start("TaskComplete")
                 net.SendToServer()
             end
-            coutprint("This command is not available(this task is not running)")
+        elseif task == "bugfixtask" then
+            if command == "AUTOFIX" then
+                coutprint("Autofix fixed ScriptedEntity error. Task completed")
+                net.Start("TaskComplete")
+                net.SendToServer()
+            end
+        elseif task == "getinftask" then
+            if command == "MAKEREPORT" then
+                coutprint("Report ready to send")
+                reportready = true
+            end
+            if command == "SENDREPORT" then
+                coutprint("Report sent. Task completed")
+                net.Start("TaskComplete")
+                net.SendToServer()
+                reportready = false
+            end
         elseif peenv then
             if command == "SCL" then
                 local tester = PlayerByName(args[1])
