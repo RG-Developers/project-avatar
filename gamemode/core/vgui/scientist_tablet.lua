@@ -4,6 +4,8 @@ local Tablet = {}
 
 local waitcoro
 
+local reportready = false
+
 local log = {"FRACTALOS v1.0", 
             "TYPE 'HELP' FOR LIST OF COMMANDS",
             "",
@@ -133,6 +135,12 @@ function Tablet:Init()
             end
             if task then
                 coutprint("TASK - SHOW INFO ABOUT CURRENT TASK")
+                if task == "simpletask" then coutprint("COMPLETE - End simple task") end
+                if task == "getinftask" then 
+                    coutprint("MAKEREPORT - GET INFO ABOUT SERVER AND MAKE REPORT READY TO SEND TO FRACTAL SERVERS") 
+                    coutprint("SENDREPORT - SEND REPORT TO FRACTAL SERVERS") 
+                end
+                if task == "fixbugtask" then coutprint("AUTOFIX - RUN AUTOMATIC SERVER BUG FIXER") end
             end
         elseif command == "ECHO" then
             coutprint(table.concat(entry," "))
@@ -158,10 +166,40 @@ function Tablet:Init()
         elseif command == "TASK" then
             coutprint(task)
         elseif command == "COMPLETE" then
-            if task == "example_task" then
-                coutprint("Example task completed")
+            if task == "simpletask" then
+                coutprint("Simple task completed")
                 net.Start("TaskComplete")
                 net.SendToServer()
+                return
+            end
+            coutprint("This command is not available(this task is not running)")
+        elseif command == "MAKEREPORT" then
+            if task == "getinftask" then
+                coutprint("Report ready")
+                reportready = true
+                return
+            end
+            coutprint("This command is not available(this task is not running)")
+        elseif command == "SENDREPORT" then
+            if task == "getinftask" and reportready then
+                coutprint("Report sent, task completed")
+                reportready = false
+                net.Start("TaskComplete")
+                net.SendToServer()
+                return
+            end
+            if not reportready then
+                coutprint("Nothing to send!")
+                return
+            end
+            coutprint("This command is not available(this task is not running)")
+        elseif command == "AUTOFIX" then
+            if task == "fixbugtask" and reportready then
+                coutprint("Bug fixed. Task completed")
+                reportready = false
+                net.Start("TaskComplete")
+                net.SendToServer()
+                return
             end
             coutprint("This command is not available(this task is not running)")
         elseif peenv then

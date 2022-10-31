@@ -1,0 +1,30 @@
+"sandbox"
+{
+	"base"		"base"
+	"title"		"Project Avatar"
+	"category"	"other"
+	"menusystem"	"1"
+	"maps"		"^av_|^gma_|^pa_|^ah_"
+	"settings"
+	{
+		1
+		{
+			"name"		"team_select_window"
+			"text"		"Allow team selecting"
+			"help"		"If enabled, the Team Select Window will show up, instead of automatic team sendingmaking"
+			"type"		"CheckBox"
+			"default"	"1"
+			"singleplayer" "1"
+		}
+		2
+		{
+			"name"		"scientists_not_on_map"
+			"text"		"Scientists can't play on map"
+			"help"		"If enabled, FractalTablet will be shown always"
+			"type"		"CheckBox"
+			"default"	"0"
+			"singleplayer" "1"
+		}
+	}
+	
+}
