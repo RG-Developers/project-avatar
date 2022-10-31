@@ -184,12 +184,14 @@ function Tablet:Init()
                 coutprint("Simple task completed")
                 net.Start("TaskComplete")
                 net.SendToServer()
+                task = ""
             end
         elseif task == "bugfixtask" then
             if command == "AUTOFIX" then
                 coutprint("Autofix fixed ScriptedEntity error. Task completed")
                 net.Start("TaskComplete")
                 net.SendToServer()
+                task = ""
             end
         elseif task == "getinftask" then
             if command == "MAKEREPORT" then
@@ -200,6 +202,7 @@ function Tablet:Init()
                 coutprint("Report sent. Task completed")
                 net.Start("TaskComplete")
                 net.SendToServer()
+                task = ""
                 reportready = false
             end
         elseif peenv then

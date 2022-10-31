@@ -69,12 +69,19 @@ if SERVER then
             SetGlobalInt("ScientistsScore", GetGlobalInt("ScientistsScore") -  math.floor(bugs[entity]['score']))
             CreateSound(entity, "/project_avatar/bugs/playerpickupbug_"..math.random(1,3)..".wav"):Play()
             removeBug(entity)
-            print(GetGlobalInt("TestersScore"))
+            if GetGlobalInt("TestersScore") > 999 then
+
+            end
             return true
         end
     end
 
     function removeBug(bug)
+        if coroutine.running() == nil then
+            coroutine.resume(bugparsers[bug], true)
+            coroutine.resume(bugparsers[bug], true)
+            coroutine.resume(bugparsers[bug], true)
+        end
         CreateSound(bug, "/project_avatar/bugs/bugfix_"..math.random(1,2)..".wav"):Play()
         bugs[bug]['leak']:Remove()
         bugs[bug]['bug']:Remove()
@@ -168,17 +175,16 @@ if SERVER then
                                             snd:Play()
                                             nextplay = CurTime() + 7
                                         end
-                                        coroutine.yield()
+                                        if coroutine.yield() then break end
                                     end
                                     CreateSound(bug, "/project_avatar/bugs/bugtimeout.wav"):Play()
                                     removeBug(entity)
                                 end )
                                 function bug:OnTakeDamage( dmginfo )
                                     SetGlobalInt("TestersScore", GetGlobalInt("TestersScore") + math.floor(bugs[entity]['score']))
-                                    SetGlobalInt("ScientistsScore", GetGlobalInt("ScientistsScore") -  math.floor(bugs[entity]['score']))
+                                    --SetGlobalInt("ScientistsScore", GetGlobalInt("ScientistsScore") -  math.floor(bugs[entity]['score']))
                                     CreateSound(entity, "/project_avatar/bugs/playerpickupbug_"..math.random(1,3)..".wav"):Play()
                                     removeBug(entity)
-                                    print(GetGlobalInt("TestersScore"))
                                 end
                                 coroutine.resume(bugparsers[bug], bug, CurTime() + math.random(20, 120))
                                 CreateSound(bug, "/project_avatar/bugs/bugspawn_"..math.random(1,3)..".wav"):Play()

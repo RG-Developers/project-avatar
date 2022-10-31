@@ -59,10 +59,10 @@ if not team_select_allowed then
 	end
 end
 function GM:PlayerSpawn(ply)
-	ply:Freeze(0)
+	ply:Freeze(false)
 	if ply:Team() == TEAM_SCIENTISTS and GetConVar("scientists_not_on_map"):GetBool() then 
-		ply:SetPos(0,0,90000)
-		ply:Freeze(1)
+		ply:SetPos(Vector(0,0,90000))
+		ply:Freeze(true)
 		return
 	end
 
@@ -89,13 +89,17 @@ function GM:PlayerSpawn(ply)
 	elseif ply:Team() == TEAM_TESTSUBJECTS then
 		if GetSubClass(ply) == 1 then
 			ply_model = "models/player/skeleton.mdl"
+			ply:Give("arccw_apex_wingman")
 			ply:SetSkin(1)
 		elseif GetSubClass(ply) == 2 then
 			ply_model = "models/player/p2_chell.mdl"
+			ply:Give("arccw_apex_melee_baton")
 		elseif GetSubClass(ply) == 3 then
 			ply_model = "models/player/kleiner.mdl"
+			ply:Give("arccw_apex_melee_wrench")
 		elseif GetSubClass(ply) == 4 then
 			ply_model = "models/player/combine_soldier.mdl"
+			ply:Give("arccw_apex_longbow")
 			ply:SetSkin(1)
 		else
 			ply_model = "models/player/combine_super_soldier.mdl"
@@ -147,12 +151,15 @@ function GM:PlayerDeath(ply, _, _)
 		MakeLight(0, 255, 0, 255, 500, brainmelt)
 		ply:SetObserverMode(OBS_MODE_IN_EYE)
 		ply:Spectate(OBS_MODE_IN_EYE)
+		ply:SetTeam(TEAM_AWAITING)
 		local coro = coroutine.create(function(model, freeze) 
 			while CurTime() < freeze do coroutine.yield() end
 			local mainbone = model:TranslateBoneToPhysBone( 10 )
 			for i=0, model:GetBoneCount(),1 do
 				constraint.Weld(model, model, mainbone, model:TranslateBoneToPhysBone( i ), 0, false, false)
 			end
+			coroutines[ply:EntIndex()+2000] = nil
+			coroutines[ply:EntIndex()] = nil
 		end)
 		coroutine.resume(coro, brainmelt, CurTime() + 0.5)
 		coroutines[ply:EntIndex()+1000] = coro
@@ -278,7 +285,9 @@ net.Receive("SetTeam", function(_, ply)
 		coroutine.resume(coro, ply, CurTime() + 60*5)
 		coroutines[ply:EntIndex()+2000] = coro
 	end
+	ply:KillSilent()
 	SetClass(ply, team, 0)
+	ply:Spawn()
 end)
 --[[
 net.Receive("WepSelect", function(_, ply) 
@@ -322,6 +331,12 @@ hook.Add("EntityTakeDamage", "FixerSuitNotLocked", function(ply, dmg)
 		coroutine.resume(coro, ply, CurTime() + 3)
 		coroutines[ply:EntIndex()] = coro
 	end
+end)
+
+hook.Add( "PlayerNoClip", "noclip", function( ply )
+    if ply:Team() == TEAM_AWAITING then
+        return true
+    end
 end)
 
 concommand.Add("setteam", function(_, _, args) 
