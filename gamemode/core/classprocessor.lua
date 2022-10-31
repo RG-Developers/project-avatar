@@ -1,4 +1,4 @@
-if CLIENT then
+if CLIENT and false then
     ready = false
     hook.Add( "Think", "AbilThink", function()
         if LocalPlayer():Team() == 3 or 5 then
@@ -43,6 +43,13 @@ if SERVER then
     bugssounds = {}
     bugcount = 0
     nextplay = 0
+
+    tasks = {
+    "simpletask", -- type 'complete' to complete task (>complete)                            +5
+    "getinftask", -- get info about server and report it to fractal(>makereport >sendreport) +10
+    "fixbugtask"  -- fix not visible bug(>autofix).                                          +10
+    }
+
     function getBugs()
         return bugs 
     end
@@ -85,18 +92,17 @@ if SERVER then
         if CurTime() > starttime then
             if CurTime() > taskcreatetime then 
                 taskcreatetime = taskcreatetime + 1
-                if math.random(0, 100) > 0 then
+                if math.random(0, 100) > 95 then
                     if GetGlobalInt("ScientistsCount") < 1 then return end
                     ply = player:GetAll()[math.random(GetGlobalInt("ScientistsCount"))]
                     while ply:Team() ~= TEAM_SCIENTISTS do
                         ply = player:GetAll()[math.random(GetGlobalInt("ScientistsCount"))]
                     end
-                    print(GetScientistTask(ply))
                     if GetScientistTask(ply) == "none" then
-                        SetScientistTask(ply, "example_task")
+                        SetScientistTask(ply, tasks[math.random(1, #tasks)])
                     end
                     if GetScientistTask(ply) == "" then
-                        SetScientistTask(ply, "example_task")
+                        SetScientistTask(ply, tasks[math.random(1, #tasks)])
                     end
                 end
             end
@@ -111,7 +117,7 @@ if SERVER then
             if CurTime() > bugcreatetime then
                 bugcreatetime = CurTime() + 1
                 if bugcount < GetGlobalInt("TestersCount") then
-                    if math.random(0, 100) > 0 then
+                    if math.random(0, 100) > 95 then
                         isspec = math.random(0,5) > 4
                         local zpvalid, zmvalid, isinworld = false, false, false
                         while (zpvalid and zmvalid and isinworld) == false do

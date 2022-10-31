@@ -13,7 +13,7 @@ AddCSLuaFile "core/tab.lua"
 
 include "shared.lua"
 coroutines = {}
-debuggm = true
+debuggm = false
 local matLight = Material( "sprites/light_ignorez" )
 
 function MakeLight( r, g, b, brght, size, parent )
@@ -115,6 +115,7 @@ function GM:PlayerDeath(ply, _, _)
 	end
 end
 ]]--
+
 function GM:PlayerDeath(ply, _, _)
 	if ply:Team() == TEAM_FIXERS then
 		local plyang = ply:GetAngles()
