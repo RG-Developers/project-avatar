@@ -203,7 +203,7 @@ elseif CLIENT then
 			--ping bar
 			draw.RoundedBox( 0, x+64, y+74, ((((105-hp-math.floor((CurTime())%5)) - 0) * 300/2) / 100), 71/2, Color(235/2, 89/2, 0, 255) )
 			draw.RoundedBox( 0, x+64, y+74, ((((105-hp-math.floor((CurTime()*25)%5)) - 0) * 300/2) / 100), 71/2, Color(235, 89, 0, 255) )
-			draw.WordBox( 8, x+64+(310/2)/2, y+74+37, ""..hp, "bfont", Color(0, 0, 0, 0), Color(255, 255, 255, 255), TEXT_ALIGN_CENTER, TEXT_ALIGN_BOTTOM)
+			draw.WordBox( 8, x+64+(310/2)/2, y+74+37, ""..105-hp, "bfont", Color(0, 0, 0, 0), Color(255, 255, 255, 255), TEXT_ALIGN_CENTER, TEXT_ALIGN_BOTTOM)
 			--base
 			surface.SetDrawColor(255, 255, 255, 255)
 			surface.SetMaterial(tst_base)
