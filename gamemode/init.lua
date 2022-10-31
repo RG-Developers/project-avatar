@@ -59,9 +59,10 @@ if not team_select_allowed then
 	end
 end
 function GM:PlayerSpawn(ply)
-
+	ply:Freeze(0)
 	if ply:Team() == TEAM_SCIENTISTS and GetConVar("scientists_not_on_map"):GetBool() then 
 		ply:SetPos(0,0,90000)
+		ply:Freeze(1)
 		return
 	end
 

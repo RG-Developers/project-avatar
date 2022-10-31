@@ -126,6 +126,7 @@ function Tablet:Init()
             coutprint("PING - PING ALL PLAYERS ON SERVER AND GET INFORMATION ABOUT THEM")
             coutprint("CLS - CLEAR OUTPUT")
             coutprint("HELP - THIS TEXT")
+            coutprint("ASFIXER - CONNECT TO SERVER AS FIXER")
             if peenv then
                 coutprint("SCL [NAME] [CLASSID] - SET TESTER CLASS.")
                 coutprint("START - VOTE FOR SERVER START")
@@ -165,6 +166,7 @@ function Tablet:Init()
             end
             terminal_runningapp = "rtcam"
         elseif command == "ASFIXER" then
+            if peend then return end
             if asfixer == false then
                 coutprint("Are you really sure that you want to connect to server as fixer? Type this command again if you sure. Time on server limit: 5 minutes")
                 asfixer = true
