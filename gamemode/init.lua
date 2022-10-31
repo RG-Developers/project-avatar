@@ -73,10 +73,23 @@ function GM:PlayerSpawn(ply)
 	end
 	ply_model = ""
 	ply:SetPlayerColor(Vector(255/255, 255/255, 255/255))
+	ply:SetSkin(0)
 	if ply:Team() == TEAM_SCIENTISTS then
 		ply_model = "models/arachnit/wolfenstein2/nazis/nazi_scientist_player.mdl"
 	elseif ply:Team() == TEAM_TESTSUBJECTS then
-		ply_model = "models/player/p2_chell.mdl"
+		if GetSubClass(ply) == 1 then
+			ply_model = "models/player/skeleton.mdl"
+			ply:SetSkin(1)
+		elseif GetSubClass(ply) == 2 then
+			ply_model = "models/player/p2_chell.mdl"
+		elseif GetSubClass(ply) == 3 then
+			ply_model = "models/player/kleiner.mdl"
+		elseif GetSubClass(ply) == 4 then
+			ply_model = "models/player/combine_soldier.mdl"
+			ply:SetSkin(1)
+		else
+			ply_model = "models/player/combine_super_soldier.mdl"
+		end
 	elseif ply:Team() == TEAM_TESTSUBJECTS_BOOSTED then
 		ply_model = "models/player/p2_chell.mdl"
 	elseif ply:Team() == TEAM_FIXERS then

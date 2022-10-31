@@ -53,16 +53,6 @@ if SERVER then
 			SetClass(ply, TEAM_TESTSUBJECTS, class)
 			ply:KillSilent()
 			ply:Spawn()
-			if class == 1 then
-				ply:SetModel("models/player/skeleton.mdl")
-			elseif class == 2 then
-				ply:SetModel("models/player/p2_chell.mdl")
-			elseif class == 3 then
-				ply:SetModel("models/player/Group01/male_07.mdl")
-			elseif class == 4 then
-				ply:SetModel("models/player/combine_soldier.mdl")
-				ply:SetSkin(1)
-			end
 			net.Start("PA_ClassSelect")
 				net.WriteUInt(1,1)
 			net.Send(ply)
