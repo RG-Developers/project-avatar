@@ -76,6 +76,14 @@ if SERVER then
         end
     end
 
+    function showBugs()
+        net.Start("updateBugs")
+            net.WriteTable(getBugs())
+        net.Broadcast()
+        net.Start("showBugs")
+        net.Broadcast()
+    end
+
     function removeBug(bug)
         if coroutine.running() == nil then
             coroutine.resume(bugparsers[bug], true)
@@ -124,7 +132,6 @@ if SERVER then
                 bugcreatetime = CurTime() + 1
                 if bugcount < GetGlobalInt("TestersCount") then
                     if math.random(0, 100) > 0 then
-                        print(1)
                         isspec = math.random(0,5) > 4
                         local zpvalid, zmvalid, isinworld = false, false, false
                         while (zpvalid and zmvalid and isinworld) == false do

@@ -50,6 +50,9 @@ local function handlecoros()
     end
 end
 
+local scale = (ScrH() / ScrW())
+print(scale)
+
 hook.Add( "HUDPaint", "OnTab", function()
     if LocalPlayer():Team() == TEAM_TESTSUBJECTS then
         show = input.IsKeyDown( KEY_TAB )
@@ -71,12 +74,12 @@ hook.Add( "HUDPaint", "OnTab", function()
         surface.SetDrawColor(255,255,255,255)
 
         surface.SetMaterial(mats[playerclass])
-        surface.DrawTexturedRect(plyx, (ScrH()-900)*0.5, 500, 900)
+        surface.DrawTexturedRect(plyx, (ScrH()-900*scale)*0.5, 500*scale, 900*scale)
 
         surface.SetMaterial(score_bar)
-        surface.DrawTexturedRectUV(scrx-400, (ScrH()-900)*0.5, 400/3, 2200/3 * (score / 1000), 0, 0, 1, 1 * (score / 1000))
+        surface.DrawTexturedRectUV(scrx-400, (ScrH()-1100*scale)*0.5, 200*scale, 1100*scale * (score / 1000), 0, 0, 1, 1 * (score / 1000))
         surface.SetMaterial(score_base)
-        surface.DrawTexturedRect(scrx-400, (ScrH()-900)*0.5, 400/3, 2200/3)
+        surface.DrawTexturedRect(scrx-400, (ScrH()-1100*scale)*0.5, 200*scale, 1100*scale)
 
         classname = names[playerclass]
         classsumm = summaries[playerclass]
@@ -85,20 +88,13 @@ hook.Add( "HUDPaint", "OnTab", function()
         surface.SetFont("smallheadfont")
         draw.DrawText(classsumm, "smallheadfont", (ScrW()*0.5)-(select(1, surface.GetTextSize( classsumm )) / 2), (ScrH()*0.4)+(select(2, surface.GetTextSize( classname )) * 2), Color( 255, 255, 255, alpha ) )
 
-        if show == true then
-            print("show")
-            print(alpha)
-            print(plyx)
-        else
-            --Hide()
-        end
     end
 end)
 
 hook.Add( "ScoreboardHide", "Scoreboard_Close", function()
     coro = coroutine.create(function(stime, etime)
         while plyx < ScrW() do
-            plyx = ScrW()-(500-(500*math.TimeFraction(stime, etime, CurTime())))
+            plyx = ScrW()-(500*scale-((500*scale)*math.TimeFraction(stime, etime, CurTime())))
             scrx = 400-(400*math.TimeFraction(stime, etime, CurTime()))
             alpha = 200-(200*math.TimeFraction(stime, etime, CurTime()))
             coroutine.yield()
@@ -110,8 +106,8 @@ end )
 
 hook.Add( "ScoreboardShow", "Scoreboard_Open", function()
     coro = coroutine.create(function(stime, etime)
-        while plyx > ScrW()-500 do
-            plyx = ScrW()-(500*math.TimeFraction(stime, etime, CurTime()))
+        while plyx > ScrW()-500*scale do
+            plyx = ScrW()-((500*scale)*math.TimeFraction(stime, etime, CurTime()))
             scrx = 400*math.TimeFraction(stime, etime, CurTime())
             alpha = 200*math.TimeFraction(stime, etime, CurTime())
             coroutine.yield()

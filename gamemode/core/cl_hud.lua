@@ -396,7 +396,7 @@ elseif CLIENT then
 	end)
 
 	net.Receive("showBugs", function()
-		bendtime = CurTime() + 5
+		bendtime = CurTime() + 60
 	end)
 	net.Receive("updateBugs", function()
 		bugs = net.ReadTable()
@@ -406,9 +406,9 @@ elseif CLIENT then
 			if bendtime > CurTime() then
 					for id, bug in pairs( bugs ) do
 						if bug['bug'] ~= nil then
-							bug['bug']:DrawModel()
 							cam.Start2D()
 								local pos = bug["bug"]:GetPos():ToScreen()
+								draw.RoundedBox(6, pos.x-30, pos.y-30, 60, 60, Color(0,127,255,127))
 								draw.SimpleText("Сбой симуляции. BrushEntityFailure","bfont",pos.x,pos.y,Color(255,255,255,255),TEXT_ALIGN_CENTER,TEXT_ALIGN_CENTER)
 							cam.End2D()
 						end
