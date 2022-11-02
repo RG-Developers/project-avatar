@@ -218,6 +218,7 @@ elseif CLIENT then
 				oldhp = hp
 				coroutines = {}
 				fade = 0
+				crsound:Stop()
 				return
 			end
 			errors = math.floor((oldhp - hp) / 5)
@@ -252,7 +253,7 @@ elseif CLIENT then
 				end)
 				coroutines[#coroutines+1] = deathcoro
 				coroutine.resume(deathcoro, CurTime())
-			elseif hp > 15 then
+			elseif hp > 5 then
 				--consec-to-player failures
 				for i=0, errors-1, 1 do
 					header = "!!ConsecToPlayer Failure!!"
