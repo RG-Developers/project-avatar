@@ -53,13 +53,21 @@ if not team_select_allowed then
 		end
 		ply:KillSilent()
 		ply:Spawn()
-		if ply:Team() == TEAM_SCIENTISTS then 
-
-		end
 	end
 end
 function GM:PlayerSpawn(ply)
 	ply:Freeze(false)
+	if ply:Team() == TEAM_SCIENTISTS then
+		ply:AllowFlashlight(false)
+	elseif ply:Team() == TEAM_TESTSUBJECTS then
+		ply:AllowFlashlight(true)
+	elseif ply:Team() == TEAM_TESTSUBJECTS_BOOSTED then
+		ply:AllowFlashlight(true)
+	elseif ply:Team() == TEAM_FIXERS then
+		ply:AllowFlashlight(true)
+	else
+		ply:AllowFlashlight(false)
+	end
 	if ply:Team() == TEAM_SCIENTISTS and GetConVar("scientists_not_on_map"):GetBool() then 
 		ply:SetPos(Vector(0,0,90000))
 		ply:Freeze(true)
