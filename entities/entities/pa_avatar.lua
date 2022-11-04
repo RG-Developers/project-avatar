@@ -8,7 +8,7 @@ if CLIENT then
 		self:DrawModel()
 		render.DrawLine(self:GetPos() + Vector(0,0,68), util.QuickTrace(
 			self:GetPos() + Vector(0,0,68), 
-			self:GetAngles():Forward()*100000, 
+			self:GetAngles():Forward()*100000-Vector(0,0,50), 
 			self).HitPos, Color(255,0,0), true)
 	end
 end
@@ -87,6 +87,7 @@ end
 function ENT:RunBehaviour()
 	-- This function is called when the entity is first spawned, it acts as a giant loop that will run as long as the NPC exists
 	local movto
+	local tpto
 	while ( true ) do
 		self:SetHealth(10000)
 		-- Lets use the above mentioned functions to see if we have/can find a enemy
@@ -111,8 +112,11 @@ function ENT:RunBehaviour()
 				self.loco:FaceTowards( movto )
 				self:MoveToPos( movto ) -- Walk to a random place within about 400 units (yielding)
 			else
-				self:SetPos(Vector(self:GetPos() + Vector( math.Rand( -1, 1 ), math.Rand( -1, 1 ), 0 ) * 400))
-				self:SetAngles(Angle(0, math.random(0,359), 0))
+				tpto = Vector(self:GetPos() + Vector( math.Rand( -1, 1 ), math.Rand( -1, 1 ), 0 ) * 400)
+				if util.QuickTrace(tpto, Vector(0,0,-1000), self).HitWorld then
+					self:SetPos(tpto)
+					self:SetAngles(Angle(0, math.random(0,359), 0))
+				end
 			end
 			self:StartActivity( ACT_IDLE )
 		end
@@ -176,7 +180,7 @@ end
 
 function ENT:TryAttacking()
 	local trace = util.QuickTrace(
-				self:GetPos() + Vector(0,0,68), 
+				self:GetPos() + Vector(0,0,30), 
 				self:GetAngles():Forward()*100000, 
 				self)
 	if IsValid(trace.Entity) and trace.Entity:IsValid() then
