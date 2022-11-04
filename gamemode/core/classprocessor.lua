@@ -123,112 +123,21 @@ if SERVER then
         end
     end)
 
-    hook.Add("Think", "Bug_Processor_Tick", function()
-        for _, parser in pairs(bugparsers) do
-            coroutine.resume(parser)
-        end
-        if CurTime() > starttime then
-            if CurTime() > bugcreatetime then
-                bugcreatetime = CurTime() + 1
-                if bugcount < GetGlobalInt("TestersCount") then
-                    if math.random(0, 100) > 0 then
-                        isspec = math.random(0,5) > 4
-                        local zpvalid, zmvalid, isinworld = false, false, false
-                        while (zpvalid and zmvalid and isinworld) == false do
-                            rx = math.random(minx, maxx)
-                            ry = math.random(miny, maxy)
-                            rz = math.random(minz, maxz)
-                            pos = Vector(rx,ry,rz)
-                            if isspec then
-                                zpvalid = util.QuickTrace(pos, Vector(0,0,10000000)).HitWorld
-                                zmvalid = util.QuickTrace(pos, Vector(0,0,-1000)).HitWorld
-                            else
-                                zpvalid = util.QuickTrace(pos, Vector(0,0,100000)).HitWorld
-                                zmvalid = util.QuickTrace(pos, Vector(0,0,-100)).HitWorld
-                            end
-                            isnotwalls = not util.QuickTrace(pos, pos).HitWorld
-                            isinworld = util.IsInWorld(pos)
-                            if (zpvalid and zmvalid and isinworld) and isnotwalls then
-                                local bug = ents.Create("prop_physics")
-                                local leak = ents.Create("hammer_leak_bug")
-                                bug:SetPos( pos )
-                                leak:SetPos( pos )
-                                bug:SetModel("models/hunter/blocks/cube1x1x1.mdl")
-                                bug:SetMaterial("models/wireframe")
-                                bug:Spawn()
-                                leak:Spawn()
-                                bug:SetMoveType(MOVETYPE_NONE)
-                                if isspec then
-                                    bug:SetColor(Color(255,0,0,255))
-                                end
-                                --SetGlobalInt("BugCount", GetGlobalInt("BugCount") + 1)
-                                --print("bugs: " .. GetGlobalInt("BugCount"))
-                                --print(isspec)
-                                --print(pos)
-                                --player:GetAll()[1]:SetPos(pos)
-                                bugs[bug] = {}
-                                bugs[bug]['bug'] = bug
-                                bugs[bug]['score'] = 2 + 2 * (isspec and 1 or 0)
-                                bugs[bug]['leak'] = leak
-                                net.Start("BugAppeared")
-                                net.Broadcast()
-                                bugparsers[bug] = coroutine.create( function(entity, time) 
-                                    snd = CreateSound(entity, "/project_avatar/bugs/bugambient.wav")
-                                    --bugssounds[entity] = snd
-                                    while CurTime() < time do
-                                        bugs[entity]['score'] = bugs[entity]['score'] + 0.05
-                                        if CurTime() > nextplay then
-                                            snd:Stop()
-                                            snd:Play()
-                                            nextplay = CurTime() + 7
-                                        end
-                                        if coroutine.yield() then
-                                            break
-                                        end
-                                    end
-                                    snd:Stop()
-                                    if CurTime() >= time then CreateSound(bug, "/project_avatar/bugs/bugtimeout.wav"):Play() end
-                                    removeBug(entity)
-                                end )
-                                coroutine.resume(bugparsers[bug], bug, CurTime() + math.random(20, 120))
-                                CreateSound(bug, "/project_avatar/bugs/bugspawn_"..math.random(1,3)..".wav"):Play()
-                                net.Start("updateBugs")
-                                    net.WriteTable(bugs)
-                                net.Broadcast()
-                                bugcount = bugcount + 1
-                            end
-                        end
-                    end
-                end
-            end
-        else
-            maxzt = util.QuickTrace(Vector(0,0,0), Vector(0,0,1000000)).HitPos[3]
-            minzt = util.QuickTrace(Vector(0,0,0), Vector(0,0,-1000000)).HitPos[3]
-            rayz = (maxzt-minzt) / 2
-            maxz = util.QuickTrace(Vector(0,0,rayz), Vector(0,0,1000000)).HitPos[3]
-            minz = util.QuickTrace(Vector(0,0,rayz), Vector(0,0,-1000000)).HitPos[3]
-            rayz = (maxz-minz) / 2
-            maxx = util.QuickTrace(Vector(0,0,rayz), Vector(1000000,0,0)).HitPos[1]
-            minx = util.QuickTrace(Vector(0,0,rayz), Vector(-1000000,0,0)).HitPos[1]
-            maxy = util.QuickTrace(Vector(0,0,rayz), Vector(0,1000000,0)).HitPos[2]
-            miny = util.QuickTrace(Vector(0,0,rayz), Vector(0,-1000000,0)).HitPos[2]
-        end
-    end)
-
-    hook.Add("PlayerUse", 'CollectBug', function(player, entity) 
-        collectBug(entity)
-        return true
-    end)
+    if SERVER then
+        timer.Create("createbug",10,0,function()
+            local bug = ents.Create("avatar_bug")
+            bug:SetPos(Vector(0,0,0))
+            bug:Spawn()
+        end)
+    end
 
 
-
-    net.Receive("abilityUse", function()
-        ply = net.ReadEntity()
+    net.Receive("abilityUse", function(_,ply)
         plysubclass = GetSubClass(ply)
         plyclass = ply:Team()
         print("gotcha")
         if plyclass ~= 3 then
-            ply:kick("Invalid ability packet: abilityUse with team #" .. ply:Team())
+            ply:Kick("Invalid ability packet: abilityUse with team #" .. ply:Team())
             return
         end
         --{"None", "Garry", "Circle", "Newguy", "Kratos"}

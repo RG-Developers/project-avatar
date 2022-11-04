@@ -1,7 +1,6 @@
 ENT.Type = "anim"
-ENT.Base = "base_gmodentity"
 
-ENT.PrintName = "BrushEntity Fail"
+ENT.PrintName = "AVATAR BUG"
 
 ENT.Category = ""
 ENT.Spawnable = false
