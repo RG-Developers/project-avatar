@@ -12,6 +12,7 @@ AddCSLuaFile "core/tab.lua"
 
 
 include "shared.lua"
+include "core/death.lua"
 coroutines = {}
 debuggm = false
 local matLight = Material( "sprites/light_ignorez" )

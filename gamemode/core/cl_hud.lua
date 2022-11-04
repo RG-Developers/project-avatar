@@ -245,6 +245,7 @@ elseif CLIENT then
 							draw.RoundedBox( 0, ScrW()/2-largest/2, ScrH()/2-71/2, largest, 71, Color(0, 0, 0, 255 ))
 							draw.DrawText(header, "bfont", (ScrW()/2) - select(1, surface.GetTextSize( header )) / 2 , ScrH()/2-71/2, Color( 255, 255, 255, 255 ) )
 							draw.DrawText(info, "bfont", (ScrW()/2) - select(1, surface.GetTextSize( info )) / 2, ScrH()/2-71/2+20, Color( 255, 255, 255, 255 ) )
+							draw.SimpleText(math.floor(LocalPlayer():GetNWInt("deathtimelost",0)), "bfont", ((ScrW()/2) - select(1, surface.GetTextSize( info )) / 2)+35, ScrH()/2-71/2+55, Color( 255, 255, 255, 255 ), TEXT_ALIGN_CENTER,TEXT_ALIGN_CENTER)
 						end
 
 						coroutine.yield(1)
@@ -288,9 +289,9 @@ elseif CLIENT then
 								ScrW()*0.25, ScrH()*0.15, 
 								Color(255, 0, 0, 127 * (((CurTime() % 0.2) > 0.10) and 1 or 0)) 
 							)
-							draw.DrawText(header, "bfont", dx, dy, Color( 255, 255, 255, 255 ) )
-							draw.DrawText(info, "bfont", dx, dy+30, Color( 255, 255, 255, 255 ) )
-							draw.DrawText("Error num " .. errorn, "bfont", dx, dy+60, Color( 255, 255, 255, 255 ) )
+							draw.SimpleText(header, "bfont", dx+(ScrW()*0.25/2), dy+(ScrH()*0.15/2)-30, Color( 255, 255, 255, 255 ),TEXT_ALIGN_CENTER,TEXT_ALIGN_CENTER)
+							draw.SimpleText(info, "bfont", dx+(ScrW()*0.25/2), dy+(ScrH()*0.15/2), Color( 255, 255, 255, 255 ),TEXT_ALIGN_CENTER,TEXT_ALIGN_CENTER)
+							draw.SimpleText("Error num " .. errorn, "bfont", dx+(ScrW()*0.25/2), dy+(ScrH()*0.15/2)+30, Color( 255, 255, 255, 255 ),TEXT_ALIGN_CENTER,TEXT_ALIGN_CENTER)
 							coroutine.yield((((endtime - CurTime()) / (endtime - starttime)) / 2))
 						end
 						if affects == 'visual' then
