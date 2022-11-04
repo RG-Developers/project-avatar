@@ -54,6 +54,10 @@ if SERVER then
         return bugs 
     end
 
+    function posIsValid(vec)
+        return true
+    end
+
     function indexOf(array, value)
         for i, v in ipairs(array) do
             if v == value then
@@ -67,8 +71,7 @@ if SERVER then
         if bugs[entity] then
             SetGlobalInt("TestersScore", GetGlobalInt("TestersScore") + math.floor(bugs[entity]['score']))
             SetGlobalInt("ScientistsScore", GetGlobalInt("ScientistsScore") -  math.floor(bugs[entity]['score']))
-            CreateSound(entity, "/project_avatar/bugs/playerpickupbug_"..math.random(1,3)..".wav"):Play()
-            removeBug(entity)
+            entity:Remove()
             if GetGlobalInt("TestersScore") > 999 then
 
             end
@@ -85,21 +88,7 @@ if SERVER then
     end
 
     function removeBug(bug)
-        if coroutine.running() == nil then
-            coroutine.resume(bugparsers[bug], true)
-        else
-            CreateSound(bug, "/project_avatar/bugs/bugfix_"..math.random(1,2)..".wav"):Play()
-            bugs[bug]['leak']:Remove()
-            bugs[bug]['bug']:Remove()
-            --bugssounds[bug]:Stop()
-            bugs[bug] = "collected"
-            bug:Remove()
-            bugcount = bugcount - 1
-            bugparsers[bug] = nil
-            net.Start("updateBugs")
-                net.WriteTable(bugs)
-            net.Broadcast()
-        end
+        bug:Remove()
     end
 
     hook.Add("Think", "Scientist_Tasker", function() 
@@ -125,13 +114,18 @@ if SERVER then
 
     if SERVER then
         timer.Create("createbug",10,0,function()
+            if math.random(0,100) < 0 then return end
+            --todo: что нибудь получше метода тыка
+            while not posIsValid(trypos) do trypos = Vector(math.random(-1000, 1000), 
+							   math.random(-1000, 1000), 
+							   math.random(-1000, 1000)) end
             local bug = ents.Create("avatar_bug")
-            bug:SetPos(Vector(0,0,0))
+            bug:SetPos(trypos)
             bug:Spawn()
         end)
     end
 
-
+    --[[
     net.Receive("abilityUse", function(_,ply)
         plysubclass = GetSubClass(ply)
         plyclass = ply:Team()
@@ -162,6 +156,7 @@ if SERVER then
             ply:ViewPunch(Angle(1,1,1))
         end
     end)
+]]-- гг, унесено в оружие
 
     net.Receive("TaskCompleted", function(_, ply)
         if GetScientistTask(ply) == "fixbugtask" then 
