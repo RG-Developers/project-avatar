@@ -54,8 +54,8 @@ if SERVER then
         return bugs 
     end
 
-    function posIsValid(vec)
-        return true
+    function posIsValid(vec) --todo: проверки получше
+        return util.IsInWorld(vec)
     end
 
     function indexOf(array, value)
@@ -116,6 +116,7 @@ if SERVER then
         timer.Create("createbug",10,0,function()
             if math.random(0,100) < 0 then return end
             --todo: что нибудь получше метода тыка
+            --todo: генерация по всей карты, а не только в предлах блока 2к на 2к на 2к
             while not posIsValid(trypos) do trypos = Vector(math.random(-1000, 1000), 
 							   math.random(-1000, 1000), 
 							   math.random(-1000, 1000)) end
