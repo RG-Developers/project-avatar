@@ -54,21 +54,13 @@ if not team_select_allowed then
 		end
 		ply:KillSilent()
 		ply:Spawn()
+		if ply:Team() == TEAM_SCIENTISTS then 
+
+		end
 	end
 end
 function GM:PlayerSpawn(ply)
 	ply:Freeze(false)
-	if ply:Team() == TEAM_SCIENTISTS then
-		ply:AllowFlashlight(false)
-	elseif ply:Team() == TEAM_TESTSUBJECTS then
-		ply:AllowFlashlight(true)
-	elseif ply:Team() == TEAM_TESTSUBJECTS_BOOSTED then
-		ply:AllowFlashlight(true)
-	elseif ply:Team() == TEAM_FIXERS then
-		ply:AllowFlashlight(true)
-	else
-		ply:AllowFlashlight(false)
-	end
 	if ply:Team() == TEAM_SCIENTISTS and GetConVar("scientists_not_on_map"):GetBool() then 
 		ply:SetPos(Vector(0,0,90000))
 		ply:Freeze(true)
@@ -81,14 +73,19 @@ function GM:PlayerSpawn(ply)
 	end
 	if ply:Team() == TEAM_SCIENTISTS then
 		player_manager.SetPlayerClass(ply, "player_scientist")
+		ply:AllowFlashlight(true)
 	elseif ply:Team() == TEAM_TESTSUBJECTS then
 		player_manager.SetPlayerClass(ply, "player_testsubject")
+		ply:AllowFlashlight(true)
 	elseif ply:Team() == TEAM_TESTSUBJECTS_BOOSTED then
 		player_manager.SetPlayerClass(ply, "player_testsubject_boosted")
+		ply:AllowFlashlight(true)
 	elseif ply:Team() == TEAM_FIXERS then
 		player_manager.SetPlayerClass(ply, "player_fixer")
+		ply:AllowFlashlight(true)
 	else
 		player_manager.SetPlayerClass(ply, "player_default")
+		ply:AllowFlashlight(false)
 	end
 	ply_model = ""
 	ply:SetPlayerColor(Vector(255/255, 255/255, 255/255))
