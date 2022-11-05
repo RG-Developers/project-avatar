@@ -117,6 +117,9 @@ if SERVER then
             if math.random(0,100) < 0 then return end
             --todo: что нибудь получше метода тыка
             --todo: генерация по всей карты, а не только в предлах блока 2к на 2к на 2к
+	    trypos = Vector(math.random(-1000, 1000), 
+			    math.random(-1000, 1000), 
+			    math.random(-1000, 1000))
             while not posIsValid(trypos) do trypos = Vector(math.random(-1000, 1000), 
 							   math.random(-1000, 1000), 
 							   math.random(-1000, 1000)) end
