@@ -12,7 +12,6 @@ AddCSLuaFile "core/tab.lua"
 
 
 include "shared.lua"
-include "core/death.lua"
 coroutines = {}
 debuggm = false
 local matLight = Material( "sprites/light_ignorez" )
@@ -169,8 +168,29 @@ function GM:PlayerDeath(ply, _, _)
 		end)
 		coroutine.resume(coro, brainmelt, CurTime() + 0.5)
 		coroutines[ply:EntIndex()+1000] = coro
+	elseif ply:Team() == TEAM_TESTSUBJECTS or ply:Team() == TEAM_TESTSUBJECTS_BOOSTED then
+		ply:SetNWString("deathtimerid",tostring(math.random(100,999)))
+    	ply:SetNWBool("respawn_allowed",false)
+    	timer.Create("deathtimer_"..ply:GetNWString("deathtimerid",0),60,1,function() -- создаём таймер
+    	    ply:SetNWBool("respawn_allowed",true) -- при окончании таймера разрешаем игроку возродиться
+    	end)
 	end
 end
+
+function GM:PlayerDeathThink(ply)
+    if timer.Exists("deathtimer_"..ply:GetNWString("deathtimerid",0)) then 
+        ply:SetNWInt("deathtimelost", 
+            timer.TimeLeft("deathtimer_"..ply:GetNWString("deathtimerid",0))
+        ) -- сетаем в NW время до возрождения
+    else
+    	return nil -- мы не тестер, можно возвродиться когда хотим
+    end
+    if ply:GetNWBool("respawn_allowed",false) then 
+        return nil 
+    end -- если нам можно возрождаться, возвращаем nil чтобы игрок мог возродиться(я хз почему так работает)
+    return false
+end
+
 
 hook.Add("SetupPlayerVisibility", "AddRTCamera", function(pPlayer, pViewEntity)
     AddOriginToPVS(pPlayer:GetPos())

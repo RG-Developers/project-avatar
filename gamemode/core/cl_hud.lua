@@ -129,7 +129,9 @@ elseif CLIENT then
 			oldoldhp = hp
 		end
 		-- constructing hud
-		if class == TEAM_SCIENTISTS then -- scientists	
+		if class == TEAM_AWAITING then
+			fade = 0
+		elseif class == TEAM_SCIENTISTS then -- scientists	
 			score = GetGlobalInt("ScientistsScore") or 1
 			--doctype
 			surface.SetDrawColor(255, 255, 255, 255)
