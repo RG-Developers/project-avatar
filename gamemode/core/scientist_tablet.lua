@@ -1,6 +1,5 @@
 local laststate, show = 0, false
-local TabletW
-local RegTablet = include "vgui/scientist_tablet.lua"
+local Tablet = include "vgui/scientist_tablet.lua"
 
 hook.Add( "Think", "OnQ", function()
     if LocalPlayer():Team() == TEAM_SCIENTISTS then
@@ -15,18 +14,13 @@ hook.Add( "Think", "OnQ", function()
         end
         laststate = input.IsKeyDown( KEY_Q )
         if show == true then
-            if IsValid(TabletW) then return end
-            TabletW = vgui.CreateFromTable( RegTablet )
+            Tablet:Show()
         else
-            if not IsValid(TabletW) then return end
-            TabletW:Remove()
-            TabletW = nil
+            Tablet:Hide()
         end
     else
         show = false
-        if not IsValid(TabletW) then return end
-        TabletW:Remove()
-        TabletW = nil
+        Tablet:Hide()
     end
 end)
 

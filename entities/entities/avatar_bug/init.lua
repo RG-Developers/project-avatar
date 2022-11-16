@@ -4,7 +4,7 @@ AddCSLuaFile("cl_init.lua")
 function ENT:Initialize()
     self:SetModel("models/hunter/blocks/cube1x1x1.mdl")
     self:SetMoveType(MOVETYPE_NONE)
-    if math.random(0,5) > 4 then self:SetColor(Color(255,0,0,255)) end
+    if not util.QuickTrace(pos, Vector(0,0,-100)).HitWorld then self:SetColor(Color(255,0,0,255)) end
     self:SetMaterial("models/wireframe")
     self:SetSolid(SOLID_VPHYSICS)
 	self:SetUseType(SIMPLE_USE)

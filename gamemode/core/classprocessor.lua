@@ -36,13 +36,8 @@ if SERVER then
     end)
     ]]--
     starttime = CurTime() + 1
-    bugcreatetime = starttime + 1
     taskcreatetime = starttime + 1
-    bugparsers = {}
-    bugs = {}
-    bugssounds = {}
     bugcount = 0
-    nextplay = 0
 
     tasks = {
     "simpletask", -- type 'complete' to complete task (>complete)                            +5
@@ -52,10 +47,6 @@ if SERVER then
 
     function getBugs()
         return bugs 
-    end
-
-    function posIsValid(vec) --todo: проверки получше
-        return util.IsInWorld(vec)
     end
 
     function indexOf(array, value)
@@ -73,7 +64,9 @@ if SERVER then
             SetGlobalInt("ScientistsScore", GetGlobalInt("ScientistsScore") -  math.floor(bugs[entity]['score']))
             entity:Remove()
             if GetGlobalInt("TestersScore") > 999 then
-
+                local bug = ents.Create("avatar_bug")
+                bug:SetPos(Vector(0,0,0))
+                bug:Spawn()
             end
             return true
         end
@@ -111,21 +104,43 @@ if SERVER then
             end
         end
     end)
-
-    if SERVER then
-        timer.Create("createbug",10,0,function()
-            if math.random(0,100) < 0 then return end
-            --todo: что нибудь получше метода тыка
-            --todo: генерация по всей карты, а не только в предлах блока 2к на 2к на 2к
-            while not posIsValid(trypos) do trypos = Vector(math.random(-1000, 1000), 
-							   math.random(-1000, 1000), 
-							   math.random(-1000, 1000)) end
-            local bug = ents.Create("avatar_bug")
-            bug:SetPos(trypos)
-            bug:Spawn()
-        end)
+    timer.Create("createbug",10,0,function()
+        if CurTime() > starttime then
+            if bugcount < GetGlobalInt("TestersCount") then
+                if math.random(0, 100) > 0 then
+                    isspec = math.random(0,5) > 4
+                    local zpvalid, zmvalid, isinworld = false, false, false
+                    while (zpvalid and zmvalid and isinworld) == false do
+                        rx = math.random(minx, maxx)
+                        ry = math.random(miny, maxy)
+                        rz = math.random(minz, maxz)
+                        pos = Vector(rx,ry,rz)
+                        if isspec then
+                            zpvalid = util.QuickTrace(pos, Vector(0,0,10000000)).HitWorld
+                            zmvalid = util.QuickTrace(pos, Vector(0,0,-1000)).HitWorld
+                        else
+                            zpvalid = util.QuickTrace(pos, Vector(0,0,100000)).HitWorld
+                            zmvalid = util.QuickTrace(pos, Vector(0,0,-100)).HitWorld
+                        end
+                        isinworld = util.IsInWorld(pos)
+                        if (zpvalid and zmvalid and isinworld) then
+                            bugcount = bugcount + 1
+                        end
+                    end
+                end
+        else
+            maxzt = util.QuickTrace(Vector(0,0,0), Vector(0,0,1000000)).HitPos[3]
+            minzt = util.QuickTrace(Vector(0,0,0), Vector(0,0,-1000000)).HitPos[3]
+            rayz = (maxzt-minzt) / 2
+            maxz = util.QuickTrace(Vector(0,0,rayz), Vector(0,0,1000000)).HitPos[3]
+            minz = util.QuickTrace(Vector(0,0,rayz), Vector(0,0,-1000000)).HitPos[3]
+            rayz = (maxz-minz) / 2
+            maxx = util.QuickTrace(Vector(0,0,rayz), Vector(1000000,0,0)).HitPos[1]
+            minx = util.QuickTrace(Vector(0,0,rayz), Vector(-1000000,0,0)).HitPos[1]
+            maxy = util.QuickTrace(Vector(0,0,rayz), Vector(0,1000000,0)).HitPos[2]
+            miny = util.QuickTrace(Vector(0,0,rayz), Vector(0,-1000000,0)).HitPos[2]
+        end
     end
-
     --[[
     net.Receive("abilityUse", function(_,ply)
         plysubclass = GetSubClass(ply)
