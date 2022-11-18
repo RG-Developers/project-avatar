@@ -17,6 +17,12 @@ if CLIENT and false then
     end)
 end
 if SERVER then
+
+    util.AddNetworkString("fixBug")
+    net.Receive("fixBug", function(_, ply)
+        removeBug(net.ReadEntity())
+    end)
+
     --[[
     hook.Add( "Think", "newguy_boost", function()
         for _,plyt in pairs(player:GetAll()) do
@@ -128,6 +134,7 @@ if SERVER then
                         end
                     end
                 end
+            end
         else
             maxzt = util.QuickTrace(Vector(0,0,0), Vector(0,0,1000000)).HitPos[3]
             minzt = util.QuickTrace(Vector(0,0,0), Vector(0,0,-1000000)).HitPos[3]
@@ -140,7 +147,7 @@ if SERVER then
             maxy = util.QuickTrace(Vector(0,0,rayz), Vector(0,1000000,0)).HitPos[2]
             miny = util.QuickTrace(Vector(0,0,rayz), Vector(0,-1000000,0)).HitPos[2]
         end
-    end
+    end)
     --[[
     net.Receive("abilityUse", function(_,ply)
         plysubclass = GetSubClass(ply)

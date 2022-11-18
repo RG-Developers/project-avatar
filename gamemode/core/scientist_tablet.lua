@@ -1,6 +1,5 @@
 local laststate, show = 0, false
 local Tablet = include "vgui/scientist_tablet.lua"
-
 hook.Add( "Think", "OnQ", function()
     if LocalPlayer():Team() == TEAM_SCIENTISTS then
         --show/hide stuff
@@ -10,14 +9,14 @@ hook.Add( "Think", "OnQ", function()
             return 
         end
         if laststate == false and input.IsKeyDown( KEY_Q ) then
-            show = not show
+            show = not Tablet:IsShowed()
+            if show == true then
+                Tablet:Show()
+            else
+                Tablet:Hide()
+            end
         end
         laststate = input.IsKeyDown( KEY_Q )
-        if show == true then
-            Tablet:Show()
-        else
-            Tablet:Hide()
-        end
     else
         show = false
         Tablet:Hide()

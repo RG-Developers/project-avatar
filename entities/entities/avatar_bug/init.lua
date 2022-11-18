@@ -4,7 +4,7 @@ AddCSLuaFile("cl_init.lua")
 function ENT:Initialize()
     self:SetModel("models/hunter/blocks/cube1x1x1.mdl")
     self:SetMoveType(MOVETYPE_NONE)
-    if not util.QuickTrace(pos, Vector(0,0,-100)).HitWorld then self:SetColor(Color(255,0,0,255)) end
+    if not util.QuickTrace(self:GetPos(), Vector(0,0,-100)).HitWorld then self:SetColor(Color(255,0,0,255)) end
     self:SetMaterial("models/wireframe")
     self:SetSolid(SOLID_VPHYSICS)
 	self:SetUseType(SIMPLE_USE)
@@ -14,6 +14,7 @@ function ENT:Initialize()
     leak:Spawn()
     self:EmitSound("/project_avatar/bugs/bugspawn_"..math.random(1,3)..".wav")
     self:EmitSound("/project_avatar/bugs/bugambient.wav",100,100,1,CHAN_AUTO,SND_NOFLAGS)
+    self:SetNWBool("hasQTE", true)
 end
 
 function ENT:OnRemove()

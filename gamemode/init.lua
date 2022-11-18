@@ -194,7 +194,9 @@ end
 
 hook.Add("SetupPlayerVisibility", "AddRTCamera", function(pPlayer, pViewEntity)
     AddOriginToPVS(pPlayer:GetPos())
+    --AddOriginToPVS(pViewEntity:GetPos())
 end)
+
 hook.Add("Think", "CountTeams", function()
 	local testsubj_count = 0
 	local scien_count = 0

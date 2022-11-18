@@ -92,7 +92,7 @@ function tabletlib.createDesktop(wallpaperpath, tabletpath, w, h)
     Main:SetTitle( "" )
     Main:ShowCloseButton(false)
     Main:SetDraggable(false) 
-    Main:MakePopup()
+    --Main:MakePopup()
     Main.Paint = function(s, w, h)
     	local scaledwp = w*0.8
 		local scaledhp = h*0.8
