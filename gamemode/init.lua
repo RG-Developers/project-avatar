@@ -154,8 +154,8 @@ function GM:PlayerDeath(ply, _, _)
 		end
 		ply:GetRagdollEntity():Remove()
 		MakeLight(0, 255, 0, 255, 500, brainmelt)
-		ply:SetObserverMode(OBS_MODE_IN_EYE)
-		ply:Spectate(OBS_MODE_IN_EYE)
+		--ply:SetObserverMode(OBS_MODE_IN_EYE)
+		--ply:Spectate(OBS_MODE_IN_EYE)
 		ply:SetTeam(TEAM_AWAITING)
 		local coro = coroutine.create(function(model, freeze) 
 			while CurTime() < freeze do coroutine.yield() end
@@ -174,6 +174,8 @@ function GM:PlayerDeath(ply, _, _)
     	timer.Create("deathtimer_"..ply:GetNWString("deathtimerid",0),60,1,function() -- создаём таймер
     	    ply:SetNWBool("respawn_allowed",true) -- при окончании таймера разрешаем игроку возродиться
     	end)
+    else
+    	ply:SetNWBool("respawn_allowed",true)
 	end
 end
 
@@ -182,8 +184,6 @@ function GM:PlayerDeathThink(ply)
         ply:SetNWInt("deathtimelost", 
             timer.TimeLeft("deathtimer_"..ply:GetNWString("deathtimerid",0))
         ) -- сетаем в NW время до возрождения
-    else
-    	return nil -- мы не тестер, можно возвродиться когда хотим
     end
     if ply:GetNWBool("respawn_allowed",false) then 
         return nil 
@@ -338,7 +338,7 @@ hook.Add("Think", "ServerThink", function()
 end)
 
 hook.Add("EntityTakeDamage", "FixerSuitNotLocked", function(ply, dmg) 
-	if ply:IsPlayer() and ply:Team() == TEAM_FIXERS and dmg:IsBulletDamage() and not (dmg:GetDamageType() == DMG_GENERIC) then --FULL WORK
+	if ply:IsPlayer() and ply:Team() == TEAM_FIXERS and dmg:IsBulletDamage() and not (dmg:GetDamageType() == DMG_GENERIC) and math.random(0,100) > 75 then --FULL WORK
 	--if ply:IsPlayer() and ply:Team() == TEAM_FIXERS then         --ONLY FOR TESTS COMMENT IN RELEASE
 		if coroutines[ply:EntIndex()] then return end
 		if IsValid(coroutines[ply:EntIndex()]) then return end

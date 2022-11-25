@@ -15,6 +15,9 @@ function ENT:Initialize()
     self:EmitSound("/project_avatar/bugs/bugspawn_"..math.random(1,3)..".wav")
     self:EmitSound("/project_avatar/bugs/bugambient.wav",100,100,1,CHAN_AUTO,SND_NOFLAGS)
     self:SetNWBool("hasQTE", true)
+    self:SetNWBool("fixing", false)
+    --local createtime = CurTime()
+    self.fixtime = CurTime() + 120
 end
 
 function ENT:OnRemove()
@@ -26,4 +29,16 @@ end
 function ENT:Use(ply)
     self:EmitSound("/project_avatar/bugs/playerpickupbug_"..math.random(1,3)..".wav")
     self:Remove()
+end
+
+function ENT:Think()
+    if self:GetNWBool("fixing") then
+        if CurTime() > self.fixtime-60 then
+            self:Remove()
+        end
+    else
+        if CurTime() > self.fixtime then
+            self:Remove()
+        end
+    end
 end

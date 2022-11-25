@@ -115,6 +115,7 @@ elseif CLIENT then
 	surface.SetFont('bfont')
 
 	local function hud()
+		if not GetConVar("cl_drawhud"):GetBool() then return end
 	-- vars
 		local ply = LocalPlayer()
 		local hp = ply:Health() or 0

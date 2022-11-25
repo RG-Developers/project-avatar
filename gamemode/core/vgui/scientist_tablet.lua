@@ -72,10 +72,12 @@ end
 function interface.Show()
     if IsValid(desktop) then return end
     desktop = tabletlib.createDesktop("project_avatar/hud/sc/tablet_wp.png", "project_avatar/hud/sc/tablet.png", ScrW(), ScrH())
+    desktop:SetZPos(0)
     local _,_, dw, dh = desktop:GetWorkWH()
-    rth = dh/3*2-20
+    rth = dh/2*1.25-20
     rtw = dw-20
     rtview = tabletlib.createDesktopPanel(desktop, rth, rtw, 0, 0)
+    rtview:SetZPos(1)
     rt_offset = Vector(0,0,0)
     function rtview:Paint(w, h)
     --[[
@@ -109,7 +111,7 @@ function interface.Show()
                     elseif ent:GetClass() == "avatar_bug" then col = render.SetMaterial( BUG )
                     else continue end
                     render.DrawSprite( ent:GetPos()+Vector(0,0,100), 120*2, 120*2, Color(255,255,255) )
-                    if ent:GetClass() == "avatar_bug" then
+                    if ent:GetClass() == "avatar_bug" and not ent:GetNWBool("fixing")then
                         render.SetMaterial( QTE )
                         render.DrawSprite( ent:GetPos()+Vector(600,0,1000), 400*4, 120*4, Color(255,255,255) )
                         if ent:GetNWBool("hasQTE") then
@@ -140,11 +142,40 @@ function interface.Show()
             cam.End3D()
         end
     end
+
+    terminalpanel = tabletlib.createDesktopPanel(desktop, dh-rth-30, dw/2-10, dw-(dw/2+10), dh-(dh-rth)+10)
+    terminalpanel:MakePopup()
+    terminalpanel:SetZPos(1)
+    function terminalpanel:Paint(w, h)
+        draw.RoundedBox(5, 0, 0, w, h, Color(0,0,0,255))
+    end
+    terminalpanel.entry = vgui.Create( "DTextEntry", desktop )
+    --terminalpanel.entry:Dock( BOTTOM )
+    --terminalpanel.entry:DockMargin( 0, 5, 0, 0 )
+    terminalpanel.entry:SetZPos(2)
+    terminalpanel.entry:SetPos(dw-(dw/2+10), dh-(dh-rth)+10)
+    terminalpanel.entry:SetSize(dw/2-10, 12)
+    terminalpanel.entry:MakePopup()
+    terminalpanel.entry:SetPlaceholderText( "Awaiting for input..." )
+    terminalpanel.entry.OnEnter = function( self )
+        executeCommand(self:GetValue())
+    end
+    terminalpanel.entry.Paint = function(self, w, h)
+        draw.RoundedBox(5, 0, 0, w, h, Color(55,55,55))
+        draw.DrawText(self:GetValue() or self:GetPlaceholderText(), "Default")
+    end
+
     close = tabletlib.createDesktopIcon(desktop, 64, 0, rth + 10)
     function close:DoClick()
         desktop:Close()
     end
     close:SetText("exit")
+
+    lockdown = tabletlib.createDesktopIcon(desktop, 64, 74*2+110, rth + 10)
+    function lockdown:DoClick()
+        tabletlib.createLockdown(desktop)
+    end
+    lockdown:SetText("lockdown")
 
     togglecam = tabletlib.createDesktopIcon(desktop, 64, 74, rth + 10)
     function togglecam:DoClick()
@@ -153,6 +184,7 @@ function interface.Show()
     togglecam:SetText("toggle rt")
 
     local sliderpanel = tabletlib.createDesktopPanel(desktop, 100, 100, 74*2, rth+10)
+    sliderpanel:MakePopup()
     local Slider = vgui.Create( "DSlider", sliderpanel )
     Slider:SetPos( 0, 0 )
     Slider:SetSize( 100, 100 )

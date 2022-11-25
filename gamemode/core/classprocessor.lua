@@ -20,7 +20,7 @@ if SERVER then
 
     util.AddNetworkString("fixBug")
     net.Receive("fixBug", function(_, ply)
-        removeBug(net.ReadEntity())
+        net.ReadEntity():SetNWBool("fixing", true)
     end)
 
     --[[

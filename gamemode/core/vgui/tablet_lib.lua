@@ -1,4 +1,5 @@
 local tabletlib = {}
+local lockdown = false
 
 function tabletlib.createWindow(x, y, w, h, title, draggable, color, text)
 	local window = vgui.Create("DFrame")
@@ -93,17 +94,32 @@ function tabletlib.createDesktop(wallpaperpath, tabletpath, w, h)
     Main:ShowCloseButton(false)
     Main:SetDraggable(false) 
     --Main:MakePopup()
-    Main.Paint = function(s, w, h)
-    	local scaledwp = w*0.8
-		local scaledhp = h*0.8
-		local wx = (w-scaledwp)/2
-		local wy = (h-scaledhp)/2
-        surface.SetDrawColor(255, 255, 255, 255)
-        surface.SetMaterial(tablet_texture)
-        surface.DrawTexturedRect(0, 0, w, h)
-        surface.SetMaterial(tablet_wallpaper)
-        surface.DrawTexturedRect(wx, wy, scaledwp, scaledhp)
-    end
+    if lockdown then
+	    Main.Paint = function(s, w, h)
+	    	local scaledwp = w*0.8
+			local scaledhp = h*0.8
+			local wx = (w-scaledwp)/2
+			local wy = (h-scaledhp)/2
+	        surface.SetDrawColor(255, 255, 255, 255)
+	        surface.SetMaterial(tablet_texture)
+	        surface.DrawTexturedRect(0, 0, w, h)
+	        surface.SetDrawColor(200 + 55/2*(math.sin(RealTime()*15)+1), 0, 0, 255)
+	        surface.SetMaterial(tablet_wallpaper)
+	        surface.DrawTexturedRect(wx, wy, scaledwp, scaledhp)
+	    end
+	else
+		Main.Paint = function(s, w, h)
+	    	local scaledwp = w*0.8
+			local scaledhp = h*0.8
+			local wx = (w-scaledwp)/2
+			local wy = (h-scaledhp)/2
+	        surface.SetDrawColor(255, 255, 255, 255)
+	        surface.SetMaterial(tablet_texture)
+	        surface.DrawTexturedRect(0, 0, w, h)
+	        surface.SetMaterial(tablet_wallpaper)
+	        surface.DrawTexturedRect(wx, wy, scaledwp, scaledhp)
+	    end
+	end
     function Main:GetWorkWH()
     	local _, _, w, h = Main:GetBounds()
     	local scaledwp = w*0.8
@@ -112,6 +128,11 @@ function tabletlib.createDesktop(wallpaperpath, tabletpath, w, h)
 		local wy = (h-scaledhp)/2
 		return wx, wy, scaledwp, scaledhp
     end
+
+    if lockdown then
+    	createLockdownDesktop(Main)
+    end
+
     return Main
 end
 
@@ -130,8 +151,112 @@ function tabletlib.createDesktopPanel(desktop, pw, ph, x, y)
 	local sx, sy, w, h = desktop:GetWorkWH()
 	panel:SetSize(ph, pw)
 	panel:SetPos(sx+10+x, sy+10+y)
-	panel:MakePopup()
 	return panel
+end
+
+function tabletlib.createLockdown(desktop)
+	local lpanel = vgui.Create("DPanel", desktop)
+	local rpanel = vgui.Create("DPanel", desktop)
+
+	local wx, wy, dw, dh = desktop:GetWorkWH()
+
+	rpanel:SetSize(dw/2-40, 40)
+	rpanel:SetPos(dw, dh/2-20)
+	rpanel:MakePopup()
+	lpanel:SetSize(dw/2-40, 40)
+	lpanel:SetPos(-(dw/2-40), dh/2-20)
+	lpanel:MakePopup()
+
+	function lpanel:Paint(w, h)
+		surface.SetDrawColor(255, 0, 0)
+		for i=-70,w+70,1 do
+			if i % 50 < 25 then 
+				surface.DrawLine(i+(RealTime()*50%50), 40, i+20+(RealTime()*50%50), 20)
+				surface.DrawLine(i+(RealTime()*50%50), 0, i+20+(RealTime()*50%50), 20)
+			end
+		end
+	end
+	function rpanel:Paint(w, h)
+		surface.SetDrawColor(255, 0, 0)
+		for i=-70,w+70,1 do
+			if i % 50 < 25 then 
+				surface.DrawLine(i-(RealTime()*50%50), 20, i+20-(RealTime()*50%50), 40)
+				surface.DrawLine(i-(RealTime()*50%50), 20, i+20-(RealTime()*50%50), 0)
+			end
+		end
+	end
+
+	local text = vgui.Create("DLabel", desktop)
+	text:SetSize(80,40)
+	text:SetPos(wx+dw/2-40, -40)
+	text:SetText("LOCKDOWN\nACTIVATED")
+	text:SetColor(Color(255,255,255,255))
+	text:MakePopup()
+
+	lpanel:MoveTo(wx, dh/2-20, 1, 0, 1, function() 
+		lpanel:MoveTo(wx, wy+20, 1, 1, 1, function() 
+			createLockdownDesktop(desktop)
+			rpanel:Remove()
+			text:Remove()
+			lpanel:Remove()
+		end)
+		rpanel:MoveTo(wx+dw-(dw/2-40), wy+20, 1, 1, 1, nil)
+		text:MoveTo(wx+dw/2-40, wy+20, 1, 1, 1)
+	end)
+	rpanel:MoveTo(wx+dw-(dw/2-40), dh/2-20, 1, 0, 1, nil)
+	text:MoveTo(wx+dw/2-40, dh/2-20, 1, 0, 1)
+end
+function createLockdownDesktop(Main)
+	lockdown = true
+	local wx, wy, dw, dh = Main:GetWorkWH()
+    Main.lpanel = vgui.Create("DPanel", Main)
+	Main.rpanel = vgui.Create("DPanel", Main)
+    Main.rpanel:SetSize(dw/2-40, 40)
+	Main.rpanel:SetPos(wx+dw-(dw/2-40), wy+20)
+	--Main.rpanel:MakePopup()
+	Main.lpanel:SetSize(dw/2-40, 40)
+	Main.lpanel:SetPos(wx, wy+20)
+	--Main.lpanel:MakePopup()
+
+	function Main.lpanel:Paint(w, h)
+		surface.SetDrawColor(255, 0, 0)
+		for i=-70,w+70,1 do
+			if i % 50 < 25 then 
+				surface.DrawLine(i+(RealTime()*50%50), 40, i+20+(RealTime()*50%50), 20)
+				surface.DrawLine(i+(RealTime()*50%50), 0, i+20+(RealTime()*50%50), 20)
+			end
+		end
+	end
+	function Main.rpanel:Paint(w, h)
+		surface.SetDrawColor(255, 0, 0)
+		for i=-70,w+70,1 do
+			if i % 50 < 25 then 
+				surface.DrawLine(i-(RealTime()*50%50), 20, i+20-(RealTime()*50%50), 40)
+				surface.DrawLine(i-(RealTime()*50%50), 20, i+20-(RealTime()*50%50), 0)
+			end
+		end
+	end
+
+	Main.ldtext = vgui.Create("DLabel", Main)
+	Main.ldtext:SetSize(80,40)
+	Main.ldtext:SetPos(wx+dw/2-40, wy+20)
+	Main.ldtext:SetText("LOCKDOWN\nACTIVATED")
+	Main.ldtext:SetColor(Color(255,255,255,255))
+
+	Main.sstext = vgui.Create("DLabel", Main)
+	Main.sstext:SetSize(dw,40)
+	Main.sstext:SetPos(wx, wy+60)
+	Main.sstext:SetText("")
+	function Main.sstext:Paint()
+		Main.sstext:SetText("Until server shutdown " .. math.floor(GetGlobalInt("servershut") - CurTime()) .. "seconds")
+	end
+	Main.sstext:SetColor(Color(255,255,255,255))
+	--Main.ldtext:MakePopup()
+
+	Main.ldtext:SetZPos(10)
+	Main.sstext:SetZPos(10)
+	Main.rpanel:SetZPos(10)
+	Main.lpanel:SetZPos(10)
 end
 --[[
 --createWindow(100,100,160*3,90*3,"Example Window",true)
