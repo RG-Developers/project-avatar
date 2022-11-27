@@ -1,21 +1,43 @@
 AddCSLuaFile "cl_init.lua"
 AddCSLuaFile "shared.lua"
-AddCSLuaFile "core/vgui/team_select.lua"
-AddCSLuaFile "core/vgui/class_select.lua"
 AddCSLuaFile "core/scientist_tablet.lua"
-AddCSLuaFile "core/vgui/scientist_tablet.lua"
 AddCSLuaFile "core/classprocessor.lua"
 AddCSLuaFile "core/team_select.lua"
+
 AddCSLuaFile "core/cl_hud.lua"
 AddCSLuaFile "core/tab.lua"
-AddCSLuaFile "core/vgui/tabletlib.lua"
+AddCSLuaFile "core/vgui/team_select.lua"
+AddCSLuaFile "core/vgui/class_select.lua"
+AddCSLuaFile "core/vgui/tablet_lib.lua"
+AddCSLuaFile "core/vgui/scientist_tablet.lua"
 --AddCSLuaFile "core/net3d2dhud.lua"
 
+AddCSLuaFile "core/tab.lua"
 
 include "shared.lua"
 coroutines = {}
 debuggm = false
 local matLight = Material( "sprites/light_ignorez" )
+
+local function IncludeDir(dir)
+    dir = dir .. "/"
+    local File, Directory = file.Find(dir.."*", "LUA")
+
+    for k, v in ipairs(File) do
+        if string.EndsWith(v, ".lua") then
+            AddCSLuaFile(v)
+            print("[PREP] Added CSLua " .. v)
+        end
+    end
+    
+    for k, v in ipairs(Directory) do
+        print("[AUTOLOAD] Directory: " .. v)
+        IncludeDir(dir..v)
+    end
+
+end
+
+IncludeDir("core")
 
 function MakeLight( r, g, b, brght, size, parent )
 
@@ -330,9 +352,10 @@ net.Receive("WepSelect", function(_, ply)
 	net.SendOmit(ply)
 end)
 ]]
+SetGlobalInt("servershut", -1)
 util.AddNetworkString("RoundEnd")
 hook.Add("Think", "ServerThink", function() 
-	if (GetGlobalInt("TestersScore") > 999 or GetGlobalInt("ScientistsScore") > 999) and (GetGlobalInt("servershut") == nil) then
+	if (GetGlobalInt("TestersScore") > 999 or GetGlobalInt("ScientistsScore") > 999) and (GetGlobalInt("servershut") == -1) then
 		SetGlobalInt("servershut", math.Round(CurTime() + 60*2 + 17))
 		net.Start("RoundEnd")
 		net.Broadcast()
@@ -342,9 +365,9 @@ hook.Add("Think", "ServerThink", function()
 		coroutine.resume(coro)
 		if coroutine.status(coro) == "dead" then coroutines[k] = nil end
 	end
-	if not (GetGlobalInt("servershut") == nil) and (GetGlobalInt("servershut") - CurTime() < 1) then
-		SetGlobalInt("servershut", nil)
-		for _, ply in player:GetAll() do
+	if not (GetGlobalInt("servershut") == -1) and (GetGlobalInt("servershut") - CurTime() < 1) then
+		SetGlobalInt("servershut", -1)
+		for _, ply in pairs(player:GetAll()) do
 			ply:SetTeam(TEAM_AWAITING)
 			ply:Freeze(true)
 			ply:PrintMessage(HUD_PRINTTALK, "Server was shut down.")
@@ -353,6 +376,7 @@ hook.Add("Think", "ServerThink", function()
 			else
 				ply:PrintMessage(HUD_PRINTTALK, "Scientists won")
 			end
+		end
 	end
 end)
 

@@ -41,8 +41,8 @@ if SERVER then
         end
     end)
     ]]--
-    starttime = CurTime() + 1
-    taskcreatetime = starttime + 1
+    starttime = CurTime() + 5
+    taskcreatetime = starttime + 5
     bugcount = 0
 
     tasks = {
