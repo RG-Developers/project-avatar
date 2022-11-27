@@ -8,6 +8,7 @@ AddCSLuaFile "core/classprocessor.lua"
 AddCSLuaFile "core/team_select.lua"
 AddCSLuaFile "core/cl_hud.lua"
 AddCSLuaFile "core/tab.lua"
+AddCSLuaFile "core/vgui/tabletlib.lua"
 --AddCSLuaFile "core/net3d2dhud.lua"
 
 
@@ -19,7 +20,7 @@ local matLight = Material( "sprites/light_ignorez" )
 function MakeLight( r, g, b, brght, size, parent )
 
 		local lamp = ents.Create( "pa_light" )
-		if ( !IsValid( lamp ) ) then return end
+		if ( not IsValid( lamp ) ) then return end
 
 		lamp:SetColor( Color( r, g, b, 255 ) )
 		lamp:SetBrightness( brght )
@@ -329,11 +330,29 @@ net.Receive("WepSelect", function(_, ply)
 	net.SendOmit(ply)
 end)
 ]]
+util.AddNetworkString("RoundEnd")
 hook.Add("Think", "ServerThink", function() 
+	if (GetGlobalInt("TestersScore") > 999 or GetGlobalInt("ScientistsScore") > 999) and (GetGlobalInt("servershut") == nil) then
+		SetGlobalInt("servershut", math.Round(CurTime() + 60*2 + 17))
+		net.Start("RoundEnd")
+		net.Broadcast()
+	end
 	for k, coro in pairs(coroutines) do
 		if coro == nil then continue end
 		coroutine.resume(coro)
 		if coroutine.status(coro) == "dead" then coroutines[k] = nil end
+	end
+	if not (GetGlobalInt("servershut") == nil) and (GetGlobalInt("servershut") - CurTime() < 1) then
+		SetGlobalInt("servershut", nil)
+		for _, ply in player:GetAll() do
+			ply:SetTeam(TEAM_AWAITING)
+			ply:Freeze(true)
+			ply:PrintMessage(HUD_PRINTTALK, "Server was shut down.")
+			if GetGlobalInt("TestersScore") > 999 then
+				ply:PrintMessage(HUD_PRINTTALK, "Testers won")
+			else
+				ply:PrintMessage(HUD_PRINTTALK, "Scientists won")
+			end
 	end
 end)
 
