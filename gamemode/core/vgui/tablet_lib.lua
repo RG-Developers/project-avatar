@@ -1,6 +1,34 @@
 local tabletlib = {}
 local lockdown = false
 
+local AVATAR = Material("project_avatar/hud/sc/avatar.png")
+local TESTER = Material("project_avatar/hud/sc/tester.png")
+local FIXER = Material("project_avatar/hud/sc/fixer.png")
+local BUG = Material("project_avatar/hud/sc/bug.png")
+local QTE = Material("project_avatar/hud/sc/qte.png")
+local keysmats = {
+    AVATAR,
+    TESTER,
+    FIXER
+}
+local keys = {
+    KEY_A,
+    KEY_B,
+    KEY_U
+}
+local rt_mat = CreateMaterial("scientist_cam", "UnlitGeneric", {
+    ["$basetexture"] = ""
+})
+local rt_pos = Vector(0, 0, 0)
+local rt_ang = Vector(90, 0, 0)
+local tbl = {}
+local rendercam = true
+local terminal = {}
+local actions = {}
+local next
+local pressed = 0
+
+
 function tabletlib.createWindow(x, y, w, h, title, draggable, color, text)
 	local window = vgui.Create("DFrame")
 	window:SetDraggable(draggable or true)

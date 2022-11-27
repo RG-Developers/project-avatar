@@ -21,23 +21,21 @@ local matLight = Material( "sprites/light_ignorez" )
 
 local function IncludeDir(dir)
     dir = dir .. "/"
-    local File, Directory = file.Find(dir.."*", "LUA")
+    local File, Directory = file.Find(dir.."*", "MOD")
 
     for k, v in ipairs(File) do
         if string.EndsWith(v, ".lua") then
-            AddCSLuaFile(v)
-            print("[PREP] Added CSLua " .. v)
+            AddCSLuaFile(dir .. v)
         end
     end
     
     for k, v in ipairs(Directory) do
-        print("[AUTOLOAD] Directory: " .. v)
         IncludeDir(dir..v)
     end
 
 end
 
-IncludeDir("core")
+IncludeDir("gamemodes/project_avatar/gamemode")
 
 function MakeLight( r, g, b, brght, size, parent )
 
