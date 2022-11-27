@@ -62,6 +62,10 @@ elseif CLIENT then
 		end)
 	end
 
+	net.Receive("RoundEnd", function(_, ply)
+    	surface.PlaySound("/project_avatar/music/server-closing.wav")
+	end)
+
 	local function HUDHide ( avatarhud )
 		for k, v in pairs{ 'CHudHealth', 'CHudBattery', 'CHudDamageIndicator' } do
 			if avatarhud == v then return false end
