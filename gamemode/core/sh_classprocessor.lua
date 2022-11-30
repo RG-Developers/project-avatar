@@ -17,7 +17,6 @@ if CLIENT and false then
     end)
 end
 if SERVER then
-
     util.AddNetworkString("fixBug")
     net.Receive("fixBug", function(_, ply)
         net.ReadEntity():SetNWBool("fixing", true)

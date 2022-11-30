@@ -1,5 +1,6 @@
 include("shared.lua")
 AddCSLuaFile("cl_init.lua")
+AddCSLuaFile("shared.lua")
 
 function ENT:Initialize()
     self:SetModel("models/hunter/blocks/cube1x1x1.mdl")

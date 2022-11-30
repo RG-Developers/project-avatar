@@ -6,21 +6,26 @@ ENT.Spawnable		= true
 if CLIENT then
 	function ENT:Draw()
 		self:DrawModel()
-		render.DrawLine(self:GetPos() + Vector(0,0,68), util.QuickTrace(
+		render.SetColorMaterial()
+		render.DrawBeam(self:GetPos() + Vector(0,0,68), util.QuickTrace(
 			self:GetPos() + Vector(0,0,68), 
 			self:GetAngles():Forward()*100000-Vector(0,0,50), 
-			self).HitPos, Color(255,0,0), true)
+			self).HitPos, 3, 0, 1, Color( 255, 0, 0 ))
 	end
+end
+
+function ENT:GetPlayerColor()
+	return Vector( 1, 0, 0 )
 end
 
 function ENT:Initialize()
 	if SERVER then
-	    self:SetFOV(270)
+	    self:SetFOV(90)
 	end
 	self:SetModel( "models/player/combine_super_soldier.mdl" )
 	self.LoseTargetDist	= 2000	-- How far the enemy has to be before we lose them
 	self.SearchRadius 	= 1000	-- How far to search for enemies
-	
+	self.laserStrength  = 2
 end
 
 ----------------------------------------------------
@@ -69,7 +74,8 @@ function ENT:FindEnemy()
 	local _ents = ents.FindInSphere( self:GetPos(), self.SearchRadius )
 	-- Here we loop through every entity the above search finds and see if it's the one we want
 	for k,v in ipairs( _ents ) do
-		if ( v:IsPlayer() and self:IsAbleToSee(v) and v:Team() == TEAM_TESTSUBJECTS ) then
+		if ( v:IsPlayer() and self:IsAbleToSee(v) and (v:Team() == TEAM_TESTSUBJECTS or v:Team() == TEAM_TESTSUBJECTS_BOOSTED)
+		and v:Alive() ) then
 			-- We found one so lets set it as our enemy and return true
 			self:SetEnemy(v)
 			return true
@@ -94,7 +100,6 @@ function ENT:RunBehaviour()
 		if ( self:HaveEnemy() ) then
 			-- Now that we have a enemy, the code in this block will run
 			self.loco:FaceTowards(self:GetEnemy():GetPos())	-- Face our enemy
-			self:StartActivity( ACT_RUN )			-- Set the animation
 			self.loco:SetDesiredSpeed( 450 )		-- Set the speed that we will be moving at. Don't worry, the animation will speed up/slow down to match
 			self.loco:SetAcceleration(900)			-- We are going to run at the enemy quickly, so we want to accelerate really fast
 			self:ChaseEnemy() 						-- The new function like MoveToPos that will be looked at soon.
@@ -105,9 +110,8 @@ function ENT:RunBehaviour()
 		else
 			-- Since we can't find an enemy, lets wander
 			-- Its the same code used in Garry's test bot
-			self:StartActivity( ACT_WALK )			-- Walk anmimation
 			self.loco:SetDesiredSpeed( 200 )		-- Walk speed
-			if math.random(0, 1) == 1 then
+			if math.random(0, 10) < 9 then
 				movto = self:GetPos() + Vector( math.Rand( -1, 1 ), math.Rand( -1, 1 ), 0 ) * 400
 				self.loco:FaceTowards( movto )
 				self:MoveToPos( movto ) -- Walk to a random place within about 400 units (yielding)
@@ -118,7 +122,6 @@ function ENT:RunBehaviour()
 					self:SetAngles(Angle(0, math.random(0,359), 0))
 				end
 			end
-			self:StartActivity( ACT_IDLE )
 		end
 		-- At this point in the code the bot has stopped chasing the player or finished walking to a random spot
 		-- Using this next function we are going to wait 2 seconds until we go ahead and repeat it 
@@ -136,17 +139,16 @@ end
 --  is an enemy.
 ----------------------------------------------------
 function ENT:ChaseEnemy( options )
-	local options = options or {}
+	local options = options or {draw = true}
 	local path = Path( "Follow" )
 	path:SetMinLookAheadDistance( options.lookahead or 300 )
-	path:SetGoalTolerance( options.tolerance or 20 )
+	path:SetGoalTolerance( options.tolerance or 100 )
 	path:Compute( self, self:GetEnemy():GetPos() )		-- Compute the path towards the enemy's position
 	local moved = false
-	if ( !path:IsValid() ) then return "failed" end
+	if ( not path:IsValid() ) then return "failed" end
 	while ( path:IsValid() and self:HaveEnemy() ) do
-	
 		if ( path:GetAge() > 0.1 ) then					-- Since we are following the player we have to constantly remake the path
-			path:Compute(self, self:GetEnemy():GetPos())-- Compute the path towards the enemy's position again
+			path:Compute(self, self:GetEnemy():GetPos()) -- Compute the path towards the enemy's position again
 		end
 		path:Update( self )								-- This function moves the bot along the path
 		--movto = path:GetPositionOnPath(dist)
@@ -157,7 +159,7 @@ function ENT:ChaseEnemy( options )
 				moved = true 
 			end
 		end
-		if not moved then
+		if not moved and math.random(0, 100) > 85 then
 			self:SetPos(self:GetEnemy():GetPos() + (-(self:GetEnemy():GetForward()) * 200) )
 			self.loco:FaceTowards(self:GetEnemy():GetPos())
 			coroutine.wait(2)
@@ -184,7 +186,7 @@ function ENT:TryAttacking()
 				self:GetAngles():Forward()*100000, 
 				self)
 	if IsValid(trace.Entity) and trace.Entity:IsValid() then
-		trace.Entity:TakeDamage(5)
+		trace.Entity:TakeDamage(self.laserStrength)
 	end
 end
 

@@ -1,11 +1,5 @@
-
-if SERVER then
-	filter = RecipientFilter()
-	filter:AddAllPlayers()
-elseif CLIENT then
-
+if CLIENT then
 	coroutines = {}
-
 	local black = Material("vgui/black")
 	local mat_r = CreateMaterial("screffect_r", "UnlitGeneric", {
 		["$basetexture"] = "vgui/black",
@@ -61,10 +55,6 @@ elseif CLIENT then
 			crsound = CreateSound(game.GetWorld(), "/project_avatar/damage/statuscritical.wav", filter)
 		end)
 	end
-
-	net.Receive("RoundEnd", function(_, ply)
-    	surface.PlaySound("/project_avatar/music/server-closing.wav")
-	end)
 
 	local function HUDHide ( avatarhud )
 		for k, v in pairs{ 'CHudHealth', 'CHudBattery', 'CHudDamageIndicator' } do
@@ -288,9 +278,13 @@ elseif CLIENT then
 								RunConsoleCommand("-moveleft")
 								RunConsoleCommand("-back")
 							elseif affects == 'visual' then
-								--bugs effect
+								draw.RoundedBox(0, math.random(0, ScrW()-10), math.random(0, ScrH()-10), 10, 10, Color(0,0,0))
+								draw.RoundedBox(0, math.random(0, ScrW()-10), math.random(0, ScrH()-10), 10, 10, Color(0,0,0))
+								draw.RoundedBox(0, math.random(0, ScrW()-10), math.random(0, ScrH()-10), 10, 10, Color(0,0,0))
+								draw.RoundedBox(0, math.random(0, ScrW()-10), math.random(0, ScrH()-10), 10, 10, Color(0,0,0))
+								draw.RoundedBox(0, math.random(0, ScrW()-10), math.random(0, ScrH()-10), 10, 10, Color(0,0,0))
 							elseif affects == 'sound' then
-								RunConsoleCommand("stopsound")
+								--RunConsoleCommand("stopsound")
 							end
 							draw.RoundedBox( 0, dx, dy, 
 								ScrW()*0.25, ScrH()*0.15, 
@@ -304,7 +298,7 @@ elseif CLIENT then
 						if affects == 'visual' then
 							--bugs effect
 						elseif affects == 'sound' then
-							RunConsoleCommand("stopsound")
+							--RunConsoleCommand("stopsound")
 						end
 						coroutine.yield(0)
 					end)

@@ -28,6 +28,28 @@ local actions = {}
 local next
 local pressed = 0
 
+local scaledw = ScrW()
+local scaledh = ScrH()
+
+local scaledwp = ScrW()*0.8
+local scaledhp = ScrH()*0.8
+local rt_offset = Vector(0,0,0)
+
+local wx = (scaledw-scaledwp)/2
+local wy = (scaledh-scaledhp)/2
+
+local function contains (tab, val)
+    for index, value in ipairs(tab) do
+        if value == val then
+            return true
+        end
+    end
+
+    return false
+end
+
+function PlayerByName(name) for i, ply in pairs(player:GetAll()) do if ply:Name() == name then return ply end end return nil end 
+classes = {"None", "Garry", "Circle", "Newguy", "Kratos"}
 
 function tabletlib.createWindow(x, y, w, h, title, draggable, color, text)
 	local window = vgui.Create("DFrame")

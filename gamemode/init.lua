@@ -1,41 +1,25 @@
-AddCSLuaFile "cl_init.lua"
-AddCSLuaFile "shared.lua"
-AddCSLuaFile "core/scientist_tablet.lua"
-AddCSLuaFile "core/classprocessor.lua"
-AddCSLuaFile "core/team_select.lua"
+--init
+AddCSLuaFile("sh_shared.lua")
+AddCSLuaFile("cl_init.lua")
+--vgui
+AddCSLuaFile("core/cl_tab.lua")
+AddCSLuaFile("core/cl_hud.lua")
+AddCSLuaFile("core/vgui/cl_tablet_lib.lua")
+AddCSLuaFile("core/vgui/cl_team_select.lua")
+AddCSLuaFile("core/vgui/cl_class_select.lua")
+AddCSLuaFile("core/vgui/cl_scientist_tablet.lua")
+AddCSLuaFile("core/cl_scientist_tablet.lua")
+--shared files
+AddCSLuaFile("core/sh_classprocessor.lua")
+AddCSLuaFile("core/sh_team_select.lua")
 
-AddCSLuaFile "core/cl_hud.lua"
-AddCSLuaFile "core/tab.lua"
-AddCSLuaFile "core/vgui/team_select.lua"
-AddCSLuaFile "core/vgui/class_select.lua"
-AddCSLuaFile "core/vgui/tablet_lib.lua"
-AddCSLuaFile "core/vgui/scientist_tablet.lua"
---AddCSLuaFile "core/net3d2dhud.lua"
-
-AddCSLuaFile "core/tab.lua"
-
-include "shared.lua"
+include("sh_shared.lua")
 coroutines = {}
 debuggm = false
 local matLight = Material( "sprites/light_ignorez" )
 
-local function IncludeDir(dir)
-    dir = dir .. "/"
-    local File, Directory = file.Find(dir.."*", "MOD")
-
-    for k, v in ipairs(File) do
-        if string.EndsWith(v, ".lua") then
-            AddCSLuaFile(dir .. v)
-        end
-    end
-    
-    for k, v in ipairs(Directory) do
-        IncludeDir(dir..v)
-    end
-
-end
-
-IncludeDir("gamemodes/project_avatar/gamemode")
+filter = RecipientFilter()
+filter:AddAllPlayers()
 
 function MakeLight( r, g, b, brght, size, parent )
 
@@ -201,17 +185,27 @@ function GM:PlayerDeath(ply, _, _)
 end
 
 function GM:PlayerDeathThink(ply)
-    if timer.Exists("deathtimer_"..ply:GetNWString("deathtimerid",0)) then 
-        ply:SetNWInt("deathtimelost", 
-            timer.TimeLeft("deathtimer_"..ply:GetNWString("deathtimerid",0))
-        ) -- сетаем в NW время до возрождения
-    end
-    if ply:GetNWBool("respawn_allowed",false) then 
-        return nil 
-    end -- если нам можно возрождаться, возвращаем nil чтобы игрок мог возродиться(я хз почему так работает)
-    return false
+	if ply:Team() == TEAM_TESTSUBJECTS or ply:Team() == TEAM_TESTSUBJECTS_BOOSTED then
+	    if timer.Exists("deathtimer_"..ply:GetNWString("deathtimerid",0)) then 
+	        ply:SetNWInt("deathtimelost", 
+	            timer.TimeLeft("deathtimer_"..ply:GetNWString("deathtimerid",0))
+	        ) -- сетаем в NW время до возрождения
+	    end
+	    if ply:GetNWBool("respawn_allowed", false) then 
+	        ply:Spawn()
+	    end -- если нам можно возрождаться, возвращаем nil чтобы игрок мог возродиться(я хз почему так работает)
+	    return false
+	else
+		ply:Spawn()
+	end
 end
 
+hook.Add("PlayerShouldTakeDamage", "AntiTeamkill", function( ply, attacker )
+	if attacker:IsPlayer() and ply:Team() == attacker:Team() then
+		return false
+	end
+	return true
+end)
 
 hook.Add("SetupPlayerVisibility", "AddRTCamera", function(pPlayer, pViewEntity)
     AddOriginToPVS(pPlayer:GetPos())
@@ -357,14 +351,15 @@ hook.Add("Think", "ServerThink", function()
 		SetGlobalInt("servershut", math.Round(CurTime() + 60*2 + 17))
 		net.Start("RoundEnd")
 		net.Broadcast()
+		Entity(1):EmitSound("/project_avatar/music/server_closing.mp3", 75, 100, 0.5)
 	end
 	for k, coro in pairs(coroutines) do
 		if coro == nil then continue end
 		coroutine.resume(coro)
 		if coroutine.status(coro) == "dead" then coroutines[k] = nil end
 	end
-	if not (GetGlobalInt("servershut") == -1) and (GetGlobalInt("servershut") - CurTime() < 1) then
-		SetGlobalInt("servershut", -1)
+	if not (GetGlobalInt("servershut") == -1 or GetGlobalInt("servershut") == -2) and (GetGlobalInt("servershut") - CurTime() < 1) then
+		SetGlobalInt("servershut", -2)
 		for _, ply in pairs(player:GetAll()) do
 			ply:SetTeam(TEAM_AWAITING)
 			ply:Freeze(true)
@@ -375,6 +370,34 @@ hook.Add("Think", "ServerThink", function()
 				ply:PrintMessage(HUD_PRINTTALK, "Scientists won")
 			end
 		end
+	end
+	if not (GetGlobalInt("servershut") == -1 or GetGlobalInt("servershut") == -2) and (GetGlobalInt("servershut") - CurTime() < 12) then 
+		Entity(1):EmitSound("project_avatar/avatar_voicelines/servershut5sec.wav")
+	end
+	if not (GetGlobalInt("servershut") == -1 or GetGlobalInt("servershut") == -2) and (GetGlobalInt("servershut") - CurTime() > 60*2 + 16 ) then
+		if not coroutines[0] == nil then return end
+		local coro = coroutine.create(function()
+
+			if GetGlobalInt("TestersScore") > 999 then
+				local stime = CurTime()
+				Entity(1):EmitSound("project_avatar/avatar_voicelines/servershut1-testers.wav")
+				while (CurTime() - stime) < 14 do coroutine.yield() end
+				Entity(1):EmitSound("project_avatar/avatar_voicelines/servershut2-testers.wav")
+				while (CurTime() - stime) < 14+9 do coroutine.yield() end
+			else
+				local stime = CurTime()
+				Entity(1):EmitSound("project_avatar/avatar_voicelines/servershut1-scientists.wav")
+				while (CurTime() - stime) < 11 do coroutine.yield() end
+				Entity(1):EmitSound("project_avatar/avatar_voicelines/servershut2-scientists.wav")
+				while (CurTime() - stime) < 11+8 do coroutine.yield() end
+			end
+
+			while (GetGlobalInt("servershut") - CurTime() > (60*2 + 16) - 52 + 10) do coroutine.yield() end
+			Entity(1):EmitSound("project_avatar/avatar_voicelines/servershut5min.wav")
+			while true do coroutine.yield() end
+		end)
+		coroutine.resume(coro)
+		coroutines[0] = coro
 	end
 end)
 

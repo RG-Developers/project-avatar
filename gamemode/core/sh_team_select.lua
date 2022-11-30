@@ -65,8 +65,8 @@ end
 if CLIENT then
 	team_select_allowed = GetConVar("team_select_window"):GetBool()
 	if team_select_allowed then
-		local TeamPanel = include "vgui/team_select.lua"
-		local ClassPanel = include "vgui/class_select.lua"
+		local TeamPanel = include "vgui/cl_team_select.lua"
+		local ClassPanel = include "vgui/cl_class_select.lua"
 
 		function GM:ShowTeam()
 			if IsValid(self.TeamSelectMenu) then return end

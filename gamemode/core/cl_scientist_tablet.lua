@@ -1,5 +1,5 @@
 local laststate, show = 0, false
-local Tablet = include "vgui/scientist_tablet.lua"
+local Tablet = include "vgui/cl_scientist_tablet.lua"
 hook.Add( "Think", "OnQ", function()
     if LocalPlayer():Team() == TEAM_SCIENTISTS then
         --show/hide stuff

@@ -4,14 +4,12 @@ GM.Email = "N/A"
 GM.Website = "N/A"
 GM.TeamBased = true
 
-include "player_class/player_scientist.lua"
-include "player_class/player_testsubject.lua"
-include "player_class/player_testsubject_boosted.lua"
-include "player_class/player_fixer.lua"
-include "core/classprocessor.lua"
-include "core/team_select.lua"
-
---include "core/net3d2dhud.lua"
+include("player_class/player_scientist.lua")
+include("player_class/player_testsubject.lua")
+include("player_class/player_testsubject_boosted.lua")
+include("player_class/player_fixer.lua")
+include("core/sh_classprocessor.lua")
+include("core/sh_team_select.lua")
 
 player_manager.AddValidModel( "FIXER_anim Playermodels", "models/arachnit/wolfenstein2/nazis/fixer_custom_anim.mdl" );
 player_manager.AddValidModel( "Server scientist", "models/arachnit/wolfenstein2/nazis/nazi_scientist_player.mdl" );
@@ -21,15 +19,13 @@ player_manager.AddValidHands( "FIXER Playermodels", "models/arachnit/wolfenstein
 
 if CLIENT then
 	local function Viewmodel( vm, ply, weapon )
-		if CLIENT then
-			if LocalPlayer():GetModel() == "models/arachnit/wolfenstein2/nazis/nazi_scientist_player.mdl" then
-				Jacket = LocalPlayer():GetBodygroup(5)
-				local Hands = LocalPlayer():GetHands()
-				if ( weapon.UseHands || not weapon:IsScripted() ) then
-					if ( IsValid( Hands ) ) then
-						Hands:DrawModel()
-						Hands:SetBodygroup(0,Jacket)
-					end
+		if LocalPlayer():GetModel() == "models/arachnit/wolfenstein2/nazis/nazi_scientist_player.mdl" then
+			Jacket = LocalPlayer():GetBodygroup(5)
+			local Hands = LocalPlayer():GetHands()
+			if ( weapon.UseHands || not weapon:IsScripted() ) then
+				if ( IsValid( Hands ) ) then
+					Hands:DrawModel()
+					Hands:SetBodygroup(0,Jacket)
 				end
 			end
 		end

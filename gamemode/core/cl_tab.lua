@@ -51,7 +51,6 @@ local function handlecoros()
 end
 
 local scale = (ScrH() / ScrW())
-print(scale)
 
 hook.Add( "HUDPaint", "OnTab", function()
     if LocalPlayer():Team() == TEAM_TESTSUBJECTS then

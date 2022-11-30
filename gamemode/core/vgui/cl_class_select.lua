@@ -40,6 +40,8 @@ function PANEL:Init()
 		surface.DrawTexturedRect(0, 0, w, h)
 		if s:IsHovered() then
 			desc = "The great hacker"
+		elseif desc == "The great hacker" then
+			desc = "..."
 		end
 	end
 
@@ -58,6 +60,8 @@ function PANEL:Init()
 		surface.DrawTexturedRect(0, 0, w, h)
 		if s:IsHovered() then
 			desc = "death and destruction"
+		elseif desc == "death and destruction" then
+			desc = "..."
 		end
 	end
 
@@ -76,6 +80,8 @@ function PANEL:Init()
 		surface.DrawTexturedRect(0, 0, w, h)
 		if s:IsHovered() then
 			desc = "Breaking bad"
+		elseif desc == "Breaking bad" then
+			desc = "..."
 		end
 	end
 
@@ -94,6 +100,8 @@ function PANEL:Init()
 		surface.DrawTexturedRect(0, 0, w, h)
 		if s:IsHovered() then
 			desc = "Just a new guy"
+		elseif desc == "Just a new guy" then
+			desc = "..."
 		end
 	end
 	
@@ -106,7 +114,12 @@ function PANEL:Init()
 end
 
 function PANEL:Paint(w, h)
-	surface.SetDrawColor(50, 50, 55, math.Clamp((math.sin(CurTime())+1)*127, 100, 200))
+	surface.SetDrawColor(
+		(math.sin(CurTime())+1)*15,
+		(math.sin(CurTime())+1)*15,
+		(math.sin(CurTime())+1)*15,
+		200
+		)
 	surface.DrawRect(0, 0, w, h)
 	draw.DrawText(desc, "csfont", ScrW()/2, 60, Color(255,255,255,255), TEXT_ALIGN_CENTER)
 end
