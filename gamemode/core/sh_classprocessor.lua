@@ -22,6 +22,8 @@ if SERVER then
         net.ReadEntity():SetNWBool("fixing", true)
     end)
 
+    local minx, miny, minz, maxx, maxy, maxz = 0, 0, 0, 0, 0, 0
+    
     --[[
     hook.Add( "Think", "newguy_boost", function()
         for _,plyt in pairs(player:GetAll()) do
@@ -45,9 +47,9 @@ if SERVER then
     bugcount = 0
 
     tasks = {
-    "simpletask", -- type 'complete' to complete task (>complete)                            +5
-    "getinftask", -- get info about server and report it to fractal(>makereport >sendreport) +10
-    "fixbugtask"  -- fix not visible bug(>autofix).                                          +10
+    "simpletask", -- type 'complete' to complete task (>complete)                            
+    "getinftask", -- get info about server and report it to fractal(>makereport >sendreport) 
+    "fixbugtask"  -- fix not visible bug(>autofix).                                          
     }
 
     function getBugs()
@@ -66,10 +68,10 @@ if SERVER then
     function collectBug(entity)
         if bugs[entity] then
             SetGlobalInt("TestersScore", GetGlobalInt("TestersScore") + math.floor(bugs[entity]['score']))
-            SetGlobalInt("ScientistsScore", GetGlobalInt("ScientistsScore") -  math.floor(bugs[entity]['score']))
+            --SetGlobalInt("ScientistsScore", GetGlobalInt("ScientistsScore") -  math.floor(bugs[entity]['score']))
             entity:Remove()
             if GetGlobalInt("TestersScore") > 999 then
-                local bug = ents.Create("avatar_bug")
+                local bug = ents.Create("pa_avatar")
                 bug:SetPos(Vector(0,0,0))
                 bug:Spawn()
             end
@@ -147,38 +149,6 @@ if SERVER then
             miny = util.QuickTrace(Vector(0,0,rayz), Vector(0,-1000000,0)).HitPos[2]
         end
     end)
-    --[[
-    net.Receive("abilityUse", function(_,ply)
-        plysubclass = GetSubClass(ply)
-        plyclass = ply:Team()
-        print("gotcha")
-        if plyclass ~= 3 then
-            ply:Kick("Invalid ability packet: abilityUse with team #" .. ply:Team())
-            return
-        end
-        --{"None", "Garry", "Circle", "Newguy", "Kratos"}
-        -- желательно всё это переписать в оружие по возможности
-        if plysubclass == 1 then -- гарри
-            rpl = ply
-            players = player:GetAll()
-            while rpl:Team() ~= 1 do
-                rpl = players[math.random(1, #players+1)]
-            end
-            OnTaskRuined(rpl)
-        elseif plysubclass == 2 then -- циркуль
-            net.Start("updateBugs")
-                net.WriteTable(bugs)
-            net.Broadcast()
-            net.Start("showBugs")
-            net.Broadcast()
-        elseif plysubclass == 3 then
-            --код заменён оружием, более не нужен.
-        elseif plysubclass == 4 then -- кратос, не трогать
-            collectBug(ply:GetEyeTrace().Entity)
-            ply:ViewPunch(Angle(1,1,1))
-        end
-    end)
-]]-- гг, унесено в оружие
 
     net.Receive("TaskCompleted", function(_, ply)
         if GetScientistTask(ply) == "fixbugtask" then 
@@ -189,8 +159,10 @@ if SERVER then
     timer.Create("AbilReady", 5, 0, function() 
         for _, ply in pairs(player:GetAll()) do
             if GetGlobalBool(ply:Name() .. "_abilReady") then continue end
-            SetGlobalBool(ply:Name() .. "_abilReady", true)
-            ply:PrintMessage(HUD_PRINTTALK, "Ability ready!")
+            if ply:Team() == TEAM_TESTERS or ply:Team() == TEAM_TESTERS_BOOSTED then
+                SetGlobalBool(ply:Name() .. "_abilReady", true)
+                ply:PrintMessage(HUD_PRINTTALK, "Ability ready!")
+            end
         end
     end)
 end
