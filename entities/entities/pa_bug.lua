@@ -26,6 +26,7 @@ function ENT:Initialize()
     self:SetNWBool("hasQTE", true)
     self:SetNWBool("fixing", false)
     self.fixtime = CurTime() + 120
+    self.score = math.random(30, 50)
 end
 
 function ENT:OnRemove()
@@ -53,6 +54,7 @@ function ENT:Think()
             self:Remove()
         end
     end
+    self.score = self.basescore * ((self.fixtime-CurTime()) / 120)
 end
 
 ENT.Type = "anim"
