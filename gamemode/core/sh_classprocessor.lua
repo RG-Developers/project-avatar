@@ -53,7 +53,7 @@ if SERVER then
     }
 
     function getBugs()
-        return bugs 
+        return ents.FindByClass("pa_bug")
     end
 
     function indexOf(array, value)
@@ -70,22 +70,15 @@ if SERVER then
             SetGlobalInt("TestersScore", GetGlobalInt("TestersScore") + math.floor(bugs[entity]['score']))
             --SetGlobalInt("ScientistsScore", GetGlobalInt("ScientistsScore") -  math.floor(bugs[entity]['score']))
             entity:Remove()
-            if GetGlobalInt("TestersScore") > 999 then
-                local bug = ents.Create("pa_avatar")
-                bug:SetPos(Vector(0,0,0))
-                bug:Spawn()
+            if GetGlobalInt("TestersScore") > 500 then
+                local avatar = ents.Create("pa_avatar")
+                avatar:SetPos(Vector(0,0,0))
+                avatar:Spawn()
             end
             return true
         end
     end
 
-    function showBugs()
-        net.Start("updateBugs")
-            net.WriteTable(getBugs())
-        net.Broadcast()
-        net.Start("showBugs")
-        net.Broadcast()
-    end
 
     function removeBug(bug)
         bug:Remove()
