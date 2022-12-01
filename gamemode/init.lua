@@ -240,12 +240,15 @@ function SetScientistTask(ply, task)
 	net.Start("NewTask") 
 	net.Send(ply)
 end
+util.AddNetworkString("OnTaskRuined")
+net.Receive("OnTaskRuined", function() 
+    OnTaskRuined(net.ReadEntity())
+end)
 function OnTaskRuined(ply, _)
 	SetScientistTask(ply, "none")
 	net.Start("TaskRuined")
 	net.Send(ply)
 	SetScientistMistakes(ply, GetScientstMistakes(ply)+1)
-
 end
 function SetScientistDoctype(ply, lvl, let)
 	SetGlobalInt(ply:Name() .. "_scindoclvl", lvl or 0)
