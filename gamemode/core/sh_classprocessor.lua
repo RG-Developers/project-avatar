@@ -107,25 +107,26 @@ if SERVER then
     timer.Create("createbug",10,0,function()
         if CurTime() > starttime then
             if bugcount < GetGlobalInt("TestersCount") then
+                local attempts = 0
                 if math.random(0, 100) > 0 then
                     isspec = math.random(0,5) > 4
-                    local zpvalid, zmvalid, isinworld = false, false, false
-                    while (zpvalid and zmvalid and isinworld) == false do
+                    local zmvalid, isinworld = false, false
+                    while (zmvalid and isinworld) == false do
                         rx = math.random(minx, maxx)
                         ry = math.random(miny, maxy)
                         rz = math.random(minz, maxz)
                         pos = Vector(rx,ry,rz)
                         if isspec then
-                            zpvalid = util.QuickTrace(pos, Vector(0,0,10000000)).HitWorld
                             zmvalid = util.QuickTrace(pos, Vector(0,0,-1000)).HitWorld
                         else
-                            zpvalid = util.QuickTrace(pos, Vector(0,0,100000)).HitWorld
                             zmvalid = util.QuickTrace(pos, Vector(0,0,-100)).HitWorld
                         end
                         isinworld = util.IsInWorld(pos)
-                        if (zpvalid and zmvalid and isinworld) then
+                        if (zmvalid and isinworld) then
                             bugcount = bugcount + 1
                         end
+                        attempts = attempts + 1
+                        if attempts > 5 then break end
                     end
                 end
             end

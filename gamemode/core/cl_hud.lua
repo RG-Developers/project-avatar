@@ -49,10 +49,12 @@ if CLIENT then
 
 
 	if pcall(function () crsound = CreateSound(game.GetWorld(), "/project_avatar/damage/statuscritical.wav", filter) end) then
-		crsound = CreateSound(game.GetWorld(), "/project_avatar/damage/statuscritical.wav", filter)
+		crsound = CreateSound(LocalPlayer(), "/project_avatar/damage/statuscritical.wav", filter)
+		falsound = CreateSound(LocalPlayer(), "/project_avatar/music/fixers_onserver.mp3", filter)
 	else
 		hook.Add('InitPostEntity', 'postinit', function()
-			crsound = CreateSound(game.GetWorld(), "/project_avatar/damage/statuscritical.wav", filter)
+			crsound = CreateSound(LocalPlayer(), "/project_avatar/damage/statuscritical.wav", filter)
+			falsound = CreateSound(LocalPlayer(), "/project_avatar/music/fixers_onserver.mp3", filter)
 		end)
 	end
 
@@ -89,10 +91,6 @@ if CLIENT then
 	local tst_crb   = Material("project_avatar/hud/ts/crossbow.png")
 	local tst_crw   = Material("project_avatar/hud/ts/crowbar.png")
 	local tst_tlg   = Material("project_avatar/hud/ts/toolgun.png")
-	--precaching materials : avatar hud materials
-	local ava_base       = Material("project_avatar/hud/av/base.png")
-	local ava_eye        = Material("project_avatar/hud/av/eye.png")
-	local ava_eye_shot   = Material("project_avatar/hud/av/eye_glow.png")
 	--precaching materials : fixer hud materials
 	local fix_base       = Material("project_avatar/hud/fx/base.png")
 	--register font
@@ -101,15 +99,19 @@ if CLIENT then
 		extended = false,
 		size = 26,
 		weight = 500})
+	local fontsize = 26
 	--and some vars
 	subclasses = {"<INTERNAL>", "Garry", "Circle", "Newguy", "Kratos"}
 	local bendtime = 0
 	local bugs = {}
 
+	local assault = false
+	local oassault = false
+
 	surface.SetFont('bfont')
 
 	local function hud()
-		if not GetConVar("cl_drawhud"):GetBool() then return end
+		assault = GetGlobalInt("FixersCount") > 0 or false
 	-- vars
 		local ply = LocalPlayer()
 		local hp = ply:Health() or 0
@@ -179,8 +181,7 @@ if CLIENT then
 				end
 				consectrace[1] = ""
 			else
-				if hp > 0 then consectrace[1] = consectrace[1] .. string.char(math.random(33, 126))
-				else consectrace[1] = "CONSCIOUSNESS DEAD" end
+				if hp > 0 then consectrace[1] = consectrace[1] .. string.char(math.random(33, 126)) end
 			end
 			for k, str in pairs(consectrace) do
 				y = y + 20
@@ -209,6 +210,41 @@ if CLIENT then
 			draw.DrawText( name, "bfont", x+55+(310/2)/2-10-50, y+8, Color( 255, 255, 255, 255 ) )
 			draw.DrawText( subclasses[subclass+1], "bfont", x+55+(310/2)/2-50, y+26+8, Color( 255, 255, 255, 255 ) )
 			handlecoros()
+			-- assault bar
+			if not oassault == assault then
+				oassault = assault
+				if not assault then
+					falsound:Stop()
+				end
+			end
+			if assault then
+				if not falsound:IsPlaying() then
+					falsound:Stop()
+					falsound:Play()
+				end
+				local offset = 50
+				local ah = 20
+				local aw = 200
+				local text = "FIXERS ASSAULT IN PROGRESS"
+				local text = text .. "   ///   "
+				local text = text .. text
+				draw.RoundedBox(0, offset, offset, aw, ah, Color(255, 100, 0, 55+50*(math.sin(RealTime()*10))+1))
+				draw.RoundedBox(0, offset, offset, 2, 10, Color(255, 100, 0)) draw.RoundedBox(0, offset, offset, 10, 2, Color(255, 100, 0))
+				draw.RoundedBox(0, offset+aw-2, offset, 2, 10, Color(255, 100, 0)) draw.RoundedBox(0, offset+aw-10, offset, 10, 2, Color(255, 100, 0))
+				draw.RoundedBox(0, offset, offset+ah-10, 2, 10, Color(255, 100, 0)) draw.RoundedBox(0, offset, offset+ah-2, 10, 2, Color(255, 100, 0))
+				draw.RoundedBox(0, offset+aw-2, offset+ah-10, 2, 10, Color(255, 100, 0)) draw.RoundedBox(0, offset+aw-10, offset+ah-2, 10, 2, Color(255, 100, 0))
+				render.SetStencilWriteMask( 0xFF ) render.SetStencilTestMask( 0xFF )
+				render.SetStencilReferenceValue( 0 ) render.SetStencilCompareFunction( STENCIL_ALWAYS )
+				render.SetStencilPassOperation( STENCIL_KEEP ) render.SetStencilFailOperation( STENCIL_KEEP )
+				render.SetStencilZFailOperation( STENCIL_KEEP ) render.ClearStencil()
+				render.SetStencilEnable( true ) render.SetStencilReferenceValue( 1 ) 
+				render.SetStencilCompareFunction( STENCIL_EQUAL ) render.ClearStencilBufferRectangle( offset, offset, aw+offset, ah+offset, 1 )
+				--draw.RoundedBox(0, offset, offset, aw+ah, ah+ah, Color(255,255,255, 255))
+				draw.DrawText(text, "bfont", RealTime()*150%(select(1, surface.GetTextSize(text))), offset+ah/2-fontsize/2, Color(255,155,0,255))
+				draw.DrawText(text, "bfont", -(select(1, surface.GetTextSize(text)))+RealTime()*150%(select(1, surface.GetTextSize(text))), offset+ah/2-fontsize/2, Color(255,155,0,255))
+				render.SetStencilEnable( false )
+			end
+
 			--if 60 < hp then return end
 			if hp == oldhp then return end
 			if hp > oldhp then
@@ -218,9 +254,9 @@ if CLIENT then
 				crsound:Stop()
 				return
 			end
+
 			errors = math.floor((oldhp - hp) / 5)
 			oldhp = hp
-			if errors < 1 then return end
 			if hp < 1 then
 				deathcoro = coroutine.create(function(starttime) 
 					local lineoffset = 0
@@ -251,7 +287,9 @@ if CLIENT then
 				end)
 				coroutines[#coroutines+1] = deathcoro
 				coroutine.resume(deathcoro, CurTime())
-			elseif hp > 5 then
+			end
+			if errors < 1 then return end
+			if hp > 5 then
 				--consec-to-player failures
 				for i=0, errors-1, 1 do
 					header = "!!ConsecToPlayer Failure!!"
@@ -260,7 +298,7 @@ if CLIENT then
 					if affects == 'move' then
 						info = "MOTORICAL SYSTEM FAILURE"
 					elseif affects == 'visual' then
-						info = "VISUAL CONTROLLER FAILURE"
+						info = "VIDEO ENCODER FAILURE"
 					elseif affects == 'sound' then
 						info = "AUDIO PARSER FAILURE"
 					end
@@ -294,11 +332,6 @@ if CLIENT then
 							draw.SimpleText(info, "bfont", dx+(ScrW()*0.25/2), dy+(ScrH()*0.15/2), Color( 255, 255, 255, 255 ),TEXT_ALIGN_CENTER,TEXT_ALIGN_CENTER)
 							draw.SimpleText("Error num " .. errorn, "bfont", dx+(ScrW()*0.25/2), dy+(ScrH()*0.15/2)+30, Color( 255, 255, 255, 255 ),TEXT_ALIGN_CENTER,TEXT_ALIGN_CENTER)
 							coroutine.yield((((endtime - CurTime()) / (endtime - starttime)) / 2))
-						end
-						if affects == 'visual' then
-							--bugs effect
-						elseif affects == 'sound' then
-							--RunConsoleCommand("stopsound")
 						end
 						coroutine.yield(0)
 					end)
@@ -338,13 +371,24 @@ if CLIENT then
 							Color(255, 0, 0, 127 * (((CurTime() % 0.2) > 0.10) and 1 or 0)) 
 						)
 						if left < 20 then
-
+							draw.RoundedBox(0, math.random(0, ScrW()-10), math.random(0, ScrH()-10), 10, 10, Color(0,0,0))
+							draw.RoundedBox(0, math.random(0, ScrW()-10), math.random(0, ScrH()-10), 10, 10, Color(0,0,0))
+							draw.RoundedBox(0, math.random(0, ScrW()-10), math.random(0, ScrH()-10), 10, 10, Color(0,0,0))
+							draw.RoundedBox(0, math.random(0, ScrW()-10), math.random(0, ScrH()-10), 10, 10, Color(0,0,0))
+							draw.RoundedBox(0, math.random(0, ScrW()-10), math.random(0, ScrH()-10), 10, 10, Color(0,0,0))
 						end
 						if left < 10 then
-
+							draw.RoundedBox(0, math.random(0, ScrW()-10), math.random(0, ScrH()-10), 10, 10, Color(0,0,0))
+							draw.RoundedBox(0, math.random(0, ScrW()-10), math.random(0, ScrH()-10), 10, 10, Color(0,0,0))
+							draw.RoundedBox(0, math.random(0, ScrW()-10), math.random(0, ScrH()-10), 10, 10, Color(0,0,0))
+							draw.RoundedBox(0, math.random(0, ScrW()-10), math.random(0, ScrH()-10), 10, 10, Color(0,0,0))
+							draw.RoundedBox(0, math.random(0, ScrW()-10), math.random(0, ScrH()-10), 10, 10, Color(0,0,0))
 						end
 						if left < 5 then
-
+							RunConsoleCommand("-forward")
+							RunConsoleCommand("-moveright")
+							RunConsoleCommand("-moveleft")
+							RunConsoleCommand("-back")
 						end
 
 						draw.DrawText(statcrit, "bfont", dx-select(1, surface.GetTextSize( statcrit )) / 2, dy, Color( 255, 255, 255, 255 ) )
@@ -358,11 +402,7 @@ if CLIENT then
 				coroutines[#coroutines+1] = critcoro
 				coroutine.resume(critcoro, CurTime()+28)
 			end
-		elseif class == TEAM_AVATAR then -- avatar
-			--base
-			surface.SetDrawColor(255, 255, 255, 255)
-			surface.SetMaterial(ava_base)
-			surface.DrawTexturedRect(x, y, 555/2, 238/2)
+		elseif class == TEAM_AVATAR then -- avatar, deprecated. Left until code cleanup
 		end
 		off = off + 0.5
 		off = off % 5
@@ -397,7 +437,6 @@ if CLIENT then
 			DrawBloom(0, f^4, 1, 1, 1, 1, 1, 1, 1)
 		end
 	end)
-
 	net.Receive("showBugs", function()
 		bendtime = CurTime() + 60
 	end)
@@ -408,7 +447,10 @@ if CLIENT then
 						cam.Start2D()
 							local pos = bug:GetPos():ToScreen()
 							draw.RoundedBox(6, pos.x-30, pos.y-30, 60, 60, Color(0,127,255,127))
-							draw.SimpleText("Сбой симуляции. BrushEntityFailure","bfont",pos.x,pos.y,Color(255,255,255,255),TEXT_ALIGN_CENTER,TEXT_ALIGN_CENTER)
+							local text = "Сбой симуляции. BrushEntityFailure"
+							local i = math.random(0, #text/2)*2-2
+							text = text:substring(0, i) .. "/" .. text:substring(i+4, #text)
+							draw.SimpleText(text,"bfont",pos.x,pos.y,Color(255,255,255,255),TEXT_ALIGN_CENTER,TEXT_ALIGN_CENTER)
 						cam.End2D()
 					end
 			else
@@ -417,5 +459,5 @@ if CLIENT then
 		end
 	end )
 else
-	print("how")
+	print("how the")
 end

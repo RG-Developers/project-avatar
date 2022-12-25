@@ -87,4 +87,5 @@ end
 function GetScientistTask(ply)
 	return GetGlobalString(ply:Name() .. "_task") or "none"
 end
+
 print("Shared data running!")

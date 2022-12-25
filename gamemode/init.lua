@@ -140,6 +140,39 @@ function GM:PlayerDeath(ply, _, _)
 end
 ]]--
 
+function GM:OnNPCKilled(Victim, _, _)
+	if Victim:GetClass() == "npc_combine_s" then
+		local plyang = Victim:GetAngles()
+		local plyvel = Victim:GetVelocity()
+		local plypos = Victim:GetPos()
+		local oldragdoll = Victim
+		local brainmelt = ents.Create("prop_ragdoll")
+		brainmelt:SetModel("models/hammerdude_ragdoll.mdl")
+		brainmelt:SetPos(plypos)
+		brainmelt:SetAngles(plyang)
+		brainmelt:Spawn()
+
+		for i=0, brainmelt:GetPhysicsObjectCount()-1,1 do
+			local physbone = brainmelt:GetPhysicsObjectNum(i)
+			if physbone == nil or not physbone:IsValid() then continue end
+			physbone:SetVelocity(plyvel)
+		end
+		Victim:Remove()
+		MakeLight(0, 255, 0, 255, 500, brainmelt)
+		local coro = coroutine.create(function(model, freeze) 
+			while CurTime() < freeze do coroutine.yield() end
+			local mainbone = model:TranslateBoneToPhysBone( 10 )
+			for i=0, model:GetBoneCount(),1 do
+				constraint.Weld(model, model, mainbone, model:TranslateBoneToPhysBone( i ), 0, false, false)
+			end
+			coroutines[Victim:EntIndex()+2000] = nil
+			coroutines[Victim:EntIndex()] = nil
+		end)
+		coroutine.resume(coro, brainmelt, CurTime() + 0.5)
+		coroutines[Victim:EntIndex()+1000] = coro
+	end
+end
+
 function GM:PlayerDeath(ply, _, _)
 	if ply:Team() == TEAM_FIXERS then
 		local plyang = ply:GetAngles()
@@ -215,6 +248,7 @@ end)
 hook.Add("Think", "CountTeams", function()
 	local testsubj_count = 0
 	local scien_count = 0
+	local fixer_count = 0
 	for k, v in pairs(player.GetAll()) do
         if v:Team() == TEAM_TESTSUBJECTS then
             testsubj_count = testsubj_count + 1
@@ -222,9 +256,16 @@ hook.Add("Think", "CountTeams", function()
         if v:Team() == TEAM_SCIENTISTS then
             scien_count = scien_count + 1
         end
+        if v:Team() == TEAM_FIXERS then
+            fixer_count = fixer_count + 1
+        end
+    end
+    for k, v in pairs(ents.FindByClass("npc_combine*")) do
+    	fixer_count = fixer_count + 1
     end
     SetGlobalInt("TestersCount", testsubj_count)
     SetGlobalInt("ScientistsCount", scien_count)
+    SetGlobalInt("FixersCount", fixer_count)
 end)
 
 function GM:SetGameRun(isrunning)
@@ -264,15 +305,6 @@ util.AddNetworkString("Disconnect")
 net.Receive("Disconnect", function(_, ply)
 	ply:SetHealth(100)
 	ply:TakeDamage(100)
-end)
-
-util.AddNetworkString("givePoints")
-net.Receive("givePoints", function()
-	if net.ReadInt(1) == 1 then
-		SetGlobalInt("TestersScore", GetGlobalInt("TestersScore") + net.ReadInt(8))
-	else
-		SetGlobalInt("ScientistsScore", GetGlobalInt("ScientistsScore") + net.ReadInt(8))
-	end
 end)
 
 util.AddNetworkString("TaskComplete")
@@ -436,6 +468,19 @@ end)
 
 concommand.Add("setteam", function(_, _, args) 
 	player:GetAll()[tonumber(args[1])]:SetTeam(tonumber(args[2]) or 0)
+end)
+
+concommand.Add("spawnfixer", function(_, _, args) 
+	local pos = player:GetAll()[tonumber(args[1])]:GetEyeTrace().HitPos
+	local fixer = ents.Create("npc_combine_s")
+	fixer:SetModel("models/arachnit/wolfenstein2/nazis/nazi_elite_atom_soldier_combine.mdl")
+	function fixer:GetPlayerColor()
+		return Vector(255/255, 210/255, 21/255)
+	end
+	fixer:SetColor(Color(255, 210, 21))
+	fixer:Give("weapon_ar2")
+	fixer:SetPos(pos)
+	fixer:Spawn()
 end)
 
 print("Serverside running!")
