@@ -7,23 +7,62 @@ local FIXER = Material("project_avatar/hud/sc/fixer.png")
 local BUG = Material("project_avatar/hud/sc/bug.png")
 local QTE = Material("project_avatar/hud/sc/qte.png")
 local keysmats = {
-    AVATAR,
-    TESTER,
-    FIXER
+    Material("project_avatar/hud/sc/letters/a.png"),
+    Material("project_avatar/hud/sc/letters/b.png"),
+    Material("project_avatar/hud/sc/letters/c.png"),
+    Material("project_avatar/hud/sc/letters/d.png"),
+    Material("project_avatar/hud/sc/letters/e.png"),
+    Material("project_avatar/hud/sc/letters/f.png"),
+    Material("project_avatar/hud/sc/letters/g.png"),
+    Material("project_avatar/hud/sc/letters/h.png"),
+
+    Material("project_avatar/hud/sc/letters/q.png"),
+    Material("project_avatar/hud/sc/letters/r.png"),
+    Material("project_avatar/hud/sc/letters/s.png"),
+    Material("project_avatar/hud/sc/letters/t.png"),
+
+    Material("project_avatar/hud/sc/letters/v.png"),
+    Material("project_avatar/hud/sc/letters/w.png"),
+    Material("project_avatar/hud/sc/letters/x.png"),
+    Material("project_avatar/hud/sc/letters/y.png"),
+    Material("project_avatar/hud/sc/letters/z.png")
 }
 local keys = {
     KEY_A,
     KEY_B,
-    KEY_U
+    KEY_C,
+    KEY_D,
+    KEY_E,
+    KEY_F,
+    KEY_G,
+    KEY_H,
+
+    KEY_Q,
+    KEY_R,
+    KEY_S,
+    KEY_T,
+
+    KEY_V,
+    KEY_W,
+    KEY_X,
+    KEY_Y,
+    KEY_Z
 }
 local rt_mat = CreateMaterial("scientist_cam", "UnlitGeneric", {
     ["$basetexture"] = ""
 })
+
+local splashes = {"Use 'help' command to get list of commands"}
+
 local rt_pos = Vector(0, 0, 0)
 local rt_ang = Vector(90, 0, 0)
 local tbl = {}
 local rendercam = true
-local terminal = {}
+local term = {"FractalOS v1.0", 
+            splashes[math.random(1, #splashes)],
+            "Server is ready to start. Use 'vtstart' command",
+            "",
+            "Restricted Server Project v1. Connected to 'fractalcorp.gov' with ssh2"}
 local actions = {}
 local next
 local pressed = 0
@@ -196,8 +235,8 @@ function tabletlib.createDesktopIcon(desktop, size, x, y)
 	return icon
 end
 
-function tabletlib.createDesktopPanel(desktop, pw, ph, x, y)
-	local panel = vgui.Create("DPanel", desktop)
+function tabletlib.createDesktopPanel(type, desktop, pw, ph, x, y)
+	local panel = vgui.Create(type, desktop)
 	local sx, sy, w, h = desktop:GetWorkWH()
 	panel:SetSize(ph, pw)
 	panel:SetPos(sx+10+x, sy+10+y)
@@ -316,92 +355,103 @@ function tabletlib.show()
     local _,_, dw, dh = desktop:GetWorkWH()
     rth = dh/2*1.25-20
     rtw = dw-20
-    rtview = tabletlib.createDesktopPanel(desktop, rth, rtw, 0, 0)
+    rtview = tabletlib.createDesktopPanel("DPanel", desktop, rth, rtw, 0, 0)
     rtview:SetZPos(1)
     rt_offset = Vector(0,0,0)
     function rtview:Paint(w, h)
-    --[[
-        surface.SetDrawColor(255, 255, 255)
-        surface.SetMaterial(rt_mat)
-        surface.DrawTexturedRect(0, 0, w, h)
-        ]]
-        if rendercam then
-            rt_pos = util.TraceLine( {
-                start = Vector(0,0,0),
-                endpos = Vector(0,0,10000) * 10000,
-                filter = function( ent ) return true end
-            } ).HitPos / 2
-            local x, y = self:GetPos()
-            render.RenderView( {
-                origin = rt_pos + rt_offset,
-                angles = rt_ang,
-                x = x, y = y,
-                w = w, h = h,
-                aspect = w / h,
-                fov = 90
-            } )
-            cam.Start3D()
-                for _, ent in pairs(ents.GetAll()) do
-                    --print(ent:GetClass())
-                    render.SetColorMaterial()
-                    local col
-                    if ent:GetClass() == "pa_avatar" then render.SetMaterial( AVATAR )
-                    elseif ent:GetClass() == "player" then 
-                        if ent:Team() == TEAM_TEST_SUBJECTS then render.SetMaterial( TESTER ) else render.SetMaterial( FIXER ) end
-                    elseif ent:GetClass() == "avatar_bug" then col = render.SetMaterial( BUG )
-                    else continue end
-                    render.DrawSprite( ent:GetPos()+Vector(0,0,100), 120*2, 120*2, Color(255,255,255) )
-                    if ent:GetClass() == "avatar_bug" and not ent:GetNWBool("fixing")then
-                        render.SetMaterial( QTE )
-                        render.DrawSprite( ent:GetPos()+Vector(600,0,1000), 400*4, 120*4, Color(255,255,255) )
-                        if ent:GetNWBool("hasQTE") then
-                            local qte = {1,2,1,2,1,2}
-                            for i, key in pairs(qte) do
-                                if i > pressed then
-                                    render.SetMaterial( keysmats[key] )
-                                    render.DrawSprite( ent:GetPos()+Vector(700,-850 + 240*i,1000), 120*2, 120*2, Color(255,255,255) )
-                                else
-                                    render.SetMaterial( FIXER )
-                                    render.DrawSprite( ent:GetPos()+Vector(700,-850 + 240*i,1000), 120*2, 120*2, Color(255,255,255) )
-                                end
-                            end
-                            if input.IsKeyDown(keys[qte[next or 1]]) then
-                                next = (next or 1) + 1
-                                pressed = pressed + 1
-                                if next >= 7 then
-                                    next = nil
-                                    pressed = 0
-                                    net.Start("fixBug")
-                                    net.WriteEntity(ent)
-                                    net.SendToServer()
-                                end
-                            end
+        if not rendercam then 
+        	draw.RoundedBox(0, 0, 0, w, h, Color(0,0,0))
+        	draw.DrawText("No signal from RTCAM_0\n\nInternal server error", "Default")
+        	return
+        end
+        rt_pos = util.TraceLine( {
+            start = Vector(0,0,0),
+            endpos = Vector(0,0,10000) * 10000,
+            filter = function( ent ) return true end
+        } ).HitPos / 2
+        local x, y = self:GetPos()
+        render.RenderView( {
+            origin = rt_pos + rt_offset,
+            angles = rt_ang,
+            x = x, y = y,
+            w = w, h = h,
+            aspect = w / h,
+            fov = 90
+        } )
+        cam.Start3D()
+            for _, ent in pairs(ents.GetAll()) do
+                --print(ent:GetClass())
+                render.SetColorMaterial()
+                if ent:GetClass() == "pa_avatar" then render.SetMaterial( AVATAR )
+                elseif ent:GetClass() == "player" then 
+                    if ent:Team() == TEAM_TEST_SUBJECTS then render.SetMaterial( TESTER ) else render.SetMaterial( FIXER ) end
+                elseif ent:GetClass() == "pa_bug" then col = render.SetMaterial( BUG )
+                else continue end
+                local ep = ent:GetPos()+Vector(0,0,100)
+                ep = Vector(ep.x, ep.y, math.min(ep.z, rt_pos.z-1000))
+                render.DrawSprite( ep, 120*2, 120*2, Color(255,255,255) )
+                if ent:GetClass() == "pa_bug" and not ent:GetNWBool("QTEdone") and ent:GetNWBool("hasQTE") then
+                    render.SetMaterial( QTE )
+                    local qtev = ent:GetPos()+Vector(600,0,1000)
+                    qtev = Vector(qtev.x, qtev.y, math.min(qtev.z, rt_pos.z-1000))
+                    render.DrawSprite( qtev, 400*4, 120*4, Color(255,255,255) )
+                    local qte = {ent:GetNWInt("qte1"),
+                    			ent:GetNWInt("qte2"),
+                    			ent:GetNWInt("qte3"),
+                    			ent:GetNWInt("qte4"),
+                    			ent:GetNWInt("qte5"),
+                    			ent:GetNWInt("qte6")}
+                    for i, key in pairs(qte) do
+                        if 7-i > pressed then
+                            render.SetMaterial( keysmats[key] )
+                            render.DrawSprite( ent:GetPos()+Vector(700,-850 + 240*i,1000), 120*2, 120*2, Color(255,255,255) )
+                        else
+                            render.SetMaterial( FIXER )
+                            render.DrawSprite( ent:GetPos()+Vector(700,-850 + 240*i,1000), 120*2, 120*2, Color(255,255,255) )
+                        end
+                    end
+                    if input.IsKeyDown(keys[qte[7-(next or 1)]]) then
+                        next = (next or 1) + 1
+                        pressed = pressed + 1
+                        if next >= 7 then
+                            next = nil
+                            pressed = 0
+                            net.Start("fixBug")
+                            net.WriteEntity(ent)
+                            net.SendToServer()
                         end
                     end
                 end
-            cam.End3D()
-        end
+            end
+	        for _, ent in pairs(ents.GetAll()) do
+	        	local sxy = (ent:GetPos() + ent:OBBCenter()):ToScreen()
+	        	local sx, sy = sxy.x, sxy.y
+	        	draw.SimpleText( "Here", "Default", sx, sy, Color( 255, 255, 255 ), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER )
+	        end
+        cam.End3D()
     end
 
-    terminalpanel = tabletlib.createDesktopPanel(desktop, dh-rth-30, dw/2-10, dw-(dw/2+10), dh-(dh-rth)+10)
-    terminalpanel:MakePopup()
+    terminalpanel = tabletlib.createDesktopPanel("DPanel", desktop, dh-rth-30, dw/2-10, 
+    																dw-(dw/2+10), dh-(dh-rth)+10)
     terminalpanel:SetZPos(1)
     function terminalpanel:Paint(w, h)
         draw.RoundedBox(5, 0, 0, w, h, Color(0,0,0,255))
+        for lineNum = 1,  math.Clamp(#term, 0, 50) do
+            draw.DrawText(term[#term-lineNum+1], "Default", 0, h-15-(12*lineNum), Color(240, 240, 240))
+        end
     end
-    terminalpanel.entry = vgui.Create( "DTextEntry", desktop )
-    --terminalpanel.entry:Dock( BOTTOM )
+    terminalpanel.entry = tabletlib.createDesktopPanel("DTextEntry", desktop, 15, dw/2-10, dw-(dw/2+10), 
+    																			  dh-(dh-rth)+10+dh-rth-45)
     --terminalpanel.entry:DockMargin( 0, 5, 0, 0 )
     terminalpanel.entry:SetZPos(2)
-    terminalpanel.entry:SetPos(dw-(dw/2+10), dh-(dh-rth)+10)
-    terminalpanel.entry:SetSize(dw/2-10, 12)
+    --terminalpanel.entry:Dock( BOTTOM )
     terminalpanel.entry:MakePopup()
-    terminalpanel.entry:SetPlaceholderText( "Awaiting for input..." )
     terminalpanel.entry.OnEnter = function( self )
-        executeCommand(self:GetValue())
+        tabletlib.executeCommand(self:GetValue())
+        self:SetText("")
     end
     terminalpanel.entry.Paint = function(self, w, h)
-        draw.RoundedBox(5, 0, 0, w, h, Color(55,55,55))
+        draw.RoundedBox(5, 0, 0, w, h, Color(155,155,155))
         draw.DrawText(self:GetValue() or self:GetPlaceholderText(), "Default")
     end
 
@@ -417,7 +467,7 @@ function tabletlib.show()
     end
     togglecam:SetText("toggle rt")
 
-    local sliderpanel = tabletlib.createDesktopPanel(desktop, 100, 100, 74*2, rth+10)
+    local sliderpanel = tabletlib.createDesktopPanel("DPanel", desktop, 100, 100, 74*2, rth+10)
     sliderpanel:MakePopup()
     local Slider = vgui.Create( "DSlider", sliderpanel )
     Slider:SetPos( 0, 0 )
@@ -440,6 +490,42 @@ end
 function tabletlib.shown()
 	return IsValid(tabletlib.Main)
 end
+
+function tprint(string)
+	term[#term+1] = string
+end
+
+function tabletlib.executeCommand(cmd)
+	tprint("[global@fractalos ~]$ " .. cmd)
+	if cmd:find("^#") then return end
+	if cmd == "clear" then
+		term = {}
+		return
+	end
+	if cmd == "help" then
+		tprint("Fractal OS Terminal help")
+		tprint("help - Display this text")
+		tprint("clear - Clear terminal output")
+		tprint("echo - Echo inputted text back")
+		tprint("ping - Ping all players on server")
+		tprint("tasknf - Print info about received task")
+		tprint("[PREnv] stc - Set test subject subclass (Garry, Kratos, Circle, Newguy)")
+		tprint("[PREnv] vtstart - Vote for server start")
+		return
+	end
+	if cmd == "ping" then
+		for k, v in pairs(player.GetAll()) do
+            if v:Team() == TEAM_TESTSUBJECTS then
+                tprint(v:Name() .. ":")
+                tprint("  " .. "Ping: " .. 105-v:Health() .. "ns")
+            end
+        end
+        return
+	end
+
+	tprint("fsh: Unknown command \"" .. cmd .. "\"")
+end
+
 --[[
 --createWindow(100,100,160*3,90*3,"Example Window",true)
 local a = createAlertWindow(100,100,160*3,90*3,"Example Alert Window",true,

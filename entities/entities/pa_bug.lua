@@ -1,3 +1,10 @@
+AddCSLuaFile()
+ENT.Type = "anim"
+ENT.Base = "base_gmodentity"
+ENT.PrintName = "Bug"
+ENT.Category = "Project Avatar"
+ENT.Spawnable = true
+
 
 if CLIENT then
   function ENT:Draw()
@@ -15,18 +22,23 @@ function ENT:Initialize()
     self:SetMoveType(MOVETYPE_NONE)
     if not util.QuickTrace(self:GetPos(), Vector(0,0,-100)).HitWorld then self:SetColor(Color(255,0,0,255)) end
     self:SetMaterial("models/wireframe")
-    self:SetSolid(SOLID_VPHYSICS)
-	self:SetUseType(SIMPLE_USE)
-    local leak = ents.Create("hammer_leak_bug")
-    leak:SetParent(self)
-    self:SetNWEntity("leak",leak)
-    leak:Spawn()
+    if SERVER then
+        self:SetSolid(SOLID_VPHYSICS)
+        self:SetUseType(SIMPLE_USE)
+        local leak = ents.Create("hammer_leak_bug")
+        leak:SetParent(self)
+        self:SetNWEntity("leak",leak)
+        leak:Spawn()
+    end
+    self:SetNWBool("hasQTE", true)
+    self:SetNWBool("QTEdone", false)
+    for i=1,7,1 do
+        self:SetNWInt("qte"..i, math.random(1, 17))
+    end
+    self.fixtime = CurTime() + 120
+    self.basescore = math.random(30, 50)
     self:EmitSound("/project_avatar/bugs/bugspawn_"..math.random(1,3)..".wav")
     self:EmitSound("/project_avatar/bugs/bugambient.wav",100,100,1,CHAN_AUTO,SND_NOFLAGS)
-    self:SetNWBool("hasQTE", true)
-    self:SetNWBool("fixing", false)
-    self.fixtime = CurTime() + 120
-    self.score = math.random(30, 50)
 end
 
 function ENT:OnRemove()
@@ -45,7 +57,7 @@ function ENT:OnTakeDamage(ply)
 end
 
 function ENT:Think()
-    if self:GetNWBool("fixing") then
+    if self:GetNWBool("QTEdone") then
         if CurTime() > self.fixtime-60 then
             self:Remove()
         end
@@ -56,8 +68,3 @@ function ENT:Think()
     end
     self.score = self.basescore * ((self.fixtime-CurTime()) / 120)
 end
-
-ENT.Type = "anim"
-ENT.PrintName = "Bug"
-ENT.Category = "Project Avatar"
-ENT.Spawnable = true
