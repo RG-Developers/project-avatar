@@ -40,31 +40,30 @@ function ENT:Initialize()
     self:EmitSound("/project_avatar/bugs/bugspawn_"..math.random(1,3)..".wav")
     self:EmitSound("/project_avatar/bugs/bugambient.wav",100,100,1,CHAN_AUTO,SND_NOFLAGS)
 end
-
-function ENT:OnRemove()
-    self:StopSound("/project_avatar/bugs/bugambient.wav")
-    self:EmitSound("/project_avatar/bugs/bugfix_"..math.random(1,2)..".wav")
-    if IsValid(self:GetNWEntity("leak",nil)) then self:GetNWEntity("leak",nil):Remove() end
-end
-
-function ENT:Use(ply)
-    self:EmitSound("/project_avatar/bugs/playerpickupbug_"..math.random(1,3)..".wav")
-    self:Remove()
-end
-function ENT:OnTakeDamage(ply)
-    self:EmitSound("/project_avatar/bugs/playerpickupbug_"..math.random(1,3)..".wav")
-    self:Remove()
-end
-
-function ENT:Think()
-    if self:GetNWBool("QTEdone") then
-        if CurTime() > self.fixtime-60 then
-            self:Remove()
-        end
-    else
-        if CurTime() > self.fixtime then
-            self:Remove()
-        end
+if SERVER then
+    function ENT:OnRemove()
+        self:StopSound("/project_avatar/bugs/bugambient.wav")
+        self:EmitSound("/project_avatar/bugs/bugfix_"..math.random(1,2)..".wav")
+        if IsValid(self:GetNWEntity("leak",nil)) then self:GetNWEntity("leak",nil):Remove() end
     end
-    self.score = self.basescore * ((self.fixtime-CurTime()) / 120)
+    function ENT:Use(ply)
+        self:EmitSound("/project_avatar/bugs/playerpickupbug_"..math.random(1,3)..".wav")
+        self:Remove()
+    end
+    function ENT:OnTakeDamage(ply)
+        self:EmitSound("/project_avatar/bugs/playerpickupbug_"..math.random(1,3)..".wav")
+        self:Remove()
+    end
+    function ENT:Think()
+        if self:GetNWBool("QTEdone") then
+            if CurTime() > self.fixtime-60 then
+                self:Remove()
+            end
+        else
+            if CurTime() > self.fixtime then
+                self:Remove()
+            end
+        end
+        self.score = self.basescore * ((self.fixtime-CurTime()) / 120)
+    end
 end

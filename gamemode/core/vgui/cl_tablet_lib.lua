@@ -358,6 +358,8 @@ function tabletlib.show()
     rtview = tabletlib.createDesktopPanel("DPanel", desktop, rth, rtw, 0, 0)
     rtview:SetZPos(1)
     rt_offset = Vector(0,0,0)
+    rt_rot = Angle(0, 0, 0)
+    rt_pos_z = 0
     function rtview:Paint(w, h)
         if not rendercam then 
         	draw.RoundedBox(0, 0, 0, w, h, Color(0,0,0))
@@ -365,14 +367,17 @@ function tabletlib.show()
         	return
         end
         rt_pos = util.TraceLine( {
-            start = Vector(0,0,0),
-            endpos = Vector(0,0,10000) * 10000,
-            filter = function( ent ) return true end
-        } ).HitPos / 2
+            start = rt_offset,
+            endpos = rt_offset + Vector(0,0,10000) * 10000,
+            filter = function( ent ) return false end
+        } ).HitPos
+        rt_pos = Vector(rt_pos.x + rt_offset.x, 
+        				rt_pos.y + rt_offset.y, 
+        				rt_pos_z)
         local x, y = self:GetPos()
         render.RenderView( {
-            origin = rt_pos + rt_offset,
-            angles = rt_ang,
+            origin = rt_pos,
+            angles = rt_rot,
             x = x, y = y,
             w = w, h = h,
             aspect = w / h,
@@ -387,14 +392,12 @@ function tabletlib.show()
                     if ent:Team() == TEAM_TEST_SUBJECTS then render.SetMaterial( TESTER ) else render.SetMaterial( FIXER ) end
                 elseif ent:GetClass() == "pa_bug" then col = render.SetMaterial( BUG )
                 else continue end
-                local ep = ent:GetPos()+Vector(0,0,100)
-                ep = Vector(ep.x, ep.y, math.min(ep.z, rt_pos.z-1000))
-                render.DrawSprite( ep, 120*2, 120*2, Color(255,255,255) )
+                local ep = ent:GetPos()+ent:OBBCenter()
+                render.DrawSprite( ep, 120, 120, Color(255,255,255) )
                 if ent:GetClass() == "pa_bug" and not ent:GetNWBool("QTEdone") and ent:GetNWBool("hasQTE") then
                     render.SetMaterial( QTE )
-                    local qtev = ent:GetPos()+Vector(600,0,1000)
-                    qtev = Vector(qtev.x, qtev.y, math.min(qtev.z, rt_pos.z-1000))
-                    render.DrawSprite( qtev, 400*4, 120*4, Color(255,255,255) )
+                    local qtev = ent:GetPos()+ent:OBBCenter()+Vector(600,0,1000)
+                    --render.DrawSprite( qtev, 400*4, 120*4, Color(255,255,255) )
                     local qte = {ent:GetNWInt("qte1"),
                     			ent:GetNWInt("qte2"),
                     			ent:GetNWInt("qte3"),
@@ -404,10 +407,10 @@ function tabletlib.show()
                     for i, key in pairs(qte) do
                         if 7-i > pressed then
                             render.SetMaterial( keysmats[key] )
-                            render.DrawSprite( ent:GetPos()+Vector(700,-850 + 240*i,1000), 120*2, 120*2, Color(255,255,255) )
+                            render.DrawSprite( ent:GetPos()+Vector(0,-(120*3) + 120*i,100), 120, 120, Color(255,255,255) )
                         else
                             render.SetMaterial( FIXER )
-                            render.DrawSprite( ent:GetPos()+Vector(700,-850 + 240*i,1000), 120*2, 120*2, Color(255,255,255) )
+                            render.DrawSprite( ent:GetPos()+Vector(0,-(120*3) + 120*i,100), 120, 120, Color(255,255,255) )
                         end
                     end
                     if input.IsKeyDown(keys[qte[7-(next or 1)]]) then
@@ -429,6 +432,9 @@ function tabletlib.show()
 	        	draw.SimpleText( "Here", "Default", sx, sy, Color( 255, 255, 255 ), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER )
 	        end
         cam.End3D()
+        local rt_pos_t = "X" .. rt_pos.x .. " Y" .. rt_pos.y .. " Z" .. rt_pos.z
+        local rt_rot_t = "P" .. rt_rot.p .. " Y" .. rt_rot.y
+        draw.DrawText("From RTCAM_0...\n\nPos: " .. rt_pos_t .. "\nAngle:" .. rt_rot_t , "Default")
     end
 
     terminalpanel = tabletlib.createDesktopPanel("DPanel", desktop, dh-rth-30, dw/2-10, 
@@ -467,21 +473,39 @@ function tabletlib.show()
     end
     togglecam:SetText("toggle rt")
 
-    local sliderpanel = tabletlib.createDesktopPanel("DPanel", desktop, 100, 100, 74*2, rth+10)
+    local sliderpanel = tabletlib.createDesktopPanel("DPanel", desktop, 100, 230, 74*2, rth+10)
     sliderpanel:MakePopup()
-    local Slider = vgui.Create( "DSlider", sliderpanel )
-    Slider:SetPos( 0, 0 )
-    Slider:SetSize( 100, 100 )
-    function Slider:Paint()
-        if not Slider:IsEditing() then 
-            Slider:SetSlideX(0.5)
-            Slider:SetSlideY(0.5)
+    function sliderpanel:Paint() end
+    local SliderM = vgui.Create( "DSlider", sliderpanel )
+    SliderM:SetPos( 0, 0 )
+    SliderM:SetSize( 10, 100 )
+    function SliderM:Paint(w, h)
+    	draw.RoundedBox(10, 0, 0, w, h, Color(0,255 * (SliderM:IsEditing() and 1 or 0),0))
+        if not SliderM:IsEditing() then
+            SliderM:SetSlideY(0.5)
         end
-        rt_offset.x = rt_offset.x + (0.5-Slider:GetSlideY())*50
-        rt_offset.y = rt_offset.y + (0.5-Slider:GetSlideX())*50
+        rt_offset.x = math.floor(rt_offset.x + rt_rot:Forward().x*(0.5-SliderM:GetSlideY())*50)
+        rt_offset.y = math.floor(rt_offset.y + rt_rot:Forward().y*(0.5-SliderM:GetSlideY())*50)
+        rt_pos_z = math.floor(rt_pos_z + rt_rot:Forward().z*(0.5-SliderM:GetSlideY())*50)
     end
-    Slider:SetLockX(nil)
-    Slider:SetLockY(nil)
+    SliderM:SetLockX(0.5)
+    SliderM:SetLockY(nil)
+
+    local SliderPY = vgui.Create( "DSlider", sliderpanel )
+    SliderPY:SetPos( 20, 0 )
+    SliderPY:SetSize( 100, 100 )
+    function SliderPY:Paint(w, h)
+    	draw.RoundedBox(10, 0, 0, w, h, Color(0,255 * (SliderPY:IsEditing() and 1 or 0),0))
+    	if not SliderPY:IsEditing() then
+            SliderPY:SetSlideY(0.5)
+            SliderPY:SetSlideX(0.5)
+        end
+        rt_rot.p = math.floor(rt_rot.p - (0.5-SliderPY:GetSlideY())*5)
+        rt_rot.y = math.floor(rt_rot.y + (0.5-SliderPY:GetSlideX())*5)
+    end
+    SliderPY:SetLockX(nil)
+    SliderPY:SetLockY(nil)
+
 end
 function tabletlib.hide()
 	tabletlib.Main:Close()
