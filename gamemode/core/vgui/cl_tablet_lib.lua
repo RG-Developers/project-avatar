@@ -358,7 +358,7 @@ function tabletlib.show()
     rtview = tabletlib.createDesktopPanel("DPanel", desktop, rth, rtw, 0, 0)
     rtview:SetZPos(1)
     rt_offset = Vector(0,0,0)
-    rt_rot = Angle(0, 0, 0)
+    rt_rot = Angle(90, 0, 0)
     rt_pos_z = 0
     function rtview:Paint(w, h)
         if not rendercam then 
@@ -384,6 +384,14 @@ function tabletlib.show()
             fov = 90
         } )
         cam.Start3D()
+        	for _, ent in pairs(ents.GetAll()) do
+        		ent:DrawModel()
+        	end
+        cam.End3D()
+
+
+        --[[
+        cam.Start3D()
             for _, ent in pairs(ents.GetAll()) do
                 --print(ent:GetClass())
                 render.SetColorMaterial()
@@ -391,6 +399,7 @@ function tabletlib.show()
                 elseif ent:GetClass() == "player" then 
                     if ent:Team() == TEAM_TEST_SUBJECTS then render.SetMaterial( TESTER ) else render.SetMaterial( FIXER ) end
                 elseif ent:GetClass() == "pa_bug" then col = render.SetMaterial( BUG )
+                elseif ent:GetClass() == "npc_combine_s" then render.SetMaterial( FIXER ) 
                 else continue end
                 local ep = ent:GetPos()+ent:OBBCenter()
                 render.DrawSprite( ep, 120, 120, Color(255,255,255) )
@@ -413,7 +422,9 @@ function tabletlib.show()
                             render.DrawSprite( ent:GetPos()+Vector(0,-(120*3) + 120*i,100), 120, 120, Color(255,255,255) )
                         end
                     end
-                    if input.IsKeyDown(keys[qte[7-(next or 1)]]) then
+                    ]]
+                    --if input.IsKeyDown(keys[qte[7-(next or 1)]]) then
+                    --[[
                         next = (next or 1) + 1
                         pressed = pressed + 1
                         if next >= 7 then
@@ -426,12 +437,8 @@ function tabletlib.show()
                     end
                 end
             end
-	        for _, ent in pairs(ents.GetAll()) do
-	        	local sxy = (ent:GetPos() + ent:OBBCenter()):ToScreen()
-	        	local sx, sy = sxy.x, sxy.y
-	        	draw.SimpleText( "Here", "Default", sx, sy, Color( 255, 255, 255 ), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER )
-	        end
         cam.End3D()
+        ]]
         local rt_pos_t = "X" .. rt_pos.x .. " Y" .. rt_pos.y .. " Z" .. rt_pos.z
         local rt_rot_t = "P" .. rt_rot.p .. " Y" .. rt_rot.y
         draw.DrawText("From RTCAM_0...\n\nPos: " .. rt_pos_t .. "\nAngle:" .. rt_rot_t , "Default")

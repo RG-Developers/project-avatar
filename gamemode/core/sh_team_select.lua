@@ -2,7 +2,7 @@ if SERVER then
 	CreateConVar("pa_friendlyfire","1",FCVAR_ARCHIVE)
 
 	hook.Add( "PlayerShouldTakeDamage", "pa.AntiTeamkill", function( ply, attacker ) -- добавил секта(я), спиздил с вики гмода
-		if ply:Team() == attacker:Team() and GetConVar("pa_friendlyfire"):GetString()=="1" then
+		if attacker:IsPlayer() and ply:Team() == attacker:Team() and GetConVar("pa_friendlyfire"):GetString()=="1" then
 			return false -- that will block damage if attacker and ply is on the same team.
 		end
 	end )

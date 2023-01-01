@@ -180,21 +180,38 @@ function GM:PlayerDeath(ply, _, _)
 		local plypos = ply:GetPos()
 		local oldragdoll = ply:GetRagdollEntity()
 		local brainmelt = ents.Create("prop_ragdoll")
+		local brainmelto = ents.Create("prop_ragdoll")
 		brainmelt:SetModel("models/hammerdude_ragdoll.mdl")
+		brainmelto:SetModel("models/arachnit/wolfenstein2/nazis/fixer_custom_anim.mdl")
 		brainmelt:SetPos(plypos)
+		brainmelto:SetPos(plypos)
 		brainmelt:SetAngles(plyang)
+		brainmelto:SetAngles(plyang)
+		brainmelto:SetColor(Color(255,155,0))
 		brainmelt:Spawn()
-
+		brainmelto:Spawn()
 		for i=0, brainmelt:GetPhysicsObjectCount()-1,1 do
 			local physbone = brainmelt:GetPhysicsObjectNum(i)
+			local physboneo = brainmelto:GetPhysicsObjectNum(i)
 			if physbone == nil or not physbone:IsValid() then continue end
+			if physboneo == nil or not physboneo:IsValid() then continue end
 			physbone:SetVelocity(plyvel)
+			physboneo:SetVelocity(plyvel)
+			constraint.Weld( brainmelt, brainmelto, 
+							i, i, 0, true, false )
+
+			print(i)
 		end
-		ply:GetRagdollEntity():Remove()
+		local ed = EffectData()
+			ed:SetOrigin( brainmelto:GetPos() )
+			ed:SetEntity( brainmelto )
+		util.Effect( "propdespawn", ed, true, true )
+		timer.Simple( 1, function() if ( IsValid( brainmelto ) ) then brainmelto:Remove() end end )
 		MakeLight(0, 255, 0, 255, 500, brainmelt)
+		ply:GetRagdollEntity():Remove() 
+		ply:SetTeam(TEAM_AWAITING)
 		--ply:SetObserverMode(OBS_MODE_IN_EYE)
 		--ply:Spectate(OBS_MODE_IN_EYE)
-		ply:SetTeam(TEAM_AWAITING)
 		local coro = coroutine.create(function(model, freeze) 
 			while CurTime() < freeze do coroutine.yield() end
 			local mainbone = model:TranslateBoneToPhysBone( 10 )
@@ -204,7 +221,7 @@ function GM:PlayerDeath(ply, _, _)
 			coroutines[ply:EntIndex()+2000] = nil
 			coroutines[ply:EntIndex()] = nil
 		end)
-		coroutine.resume(coro, brainmelt, CurTime() + 0.5)
+		coroutine.resume(coro, brainmelt, CurTime() + 1.5)
 		coroutines[ply:EntIndex()+1000] = coro
 	elseif ply:Team() == TEAM_TESTSUBJECTS or ply:Team() == TEAM_TESTSUBJECTS_BOOSTED then
 		ply:SetNWString("deathtimerid",tostring(math.random(100,999)))
@@ -228,8 +245,10 @@ function GM:PlayerDeathThink(ply)
 	        ply:Spawn()
 	    end -- если нам можно возрождаться, возвращаем nil чтобы игрок мог возродиться(я хз почему так работает)
 	    return false
+	elseif ply:Team() == TEAM_FIXERS then
+		return false
 	else
-		ply:Spawn()
+		--ply:Spawn()
 	end
 end
 
@@ -383,7 +402,7 @@ SetGlobalInt("servershut", -1)
 util.AddNetworkString("RoundEnd")
 hook.Add("Think", "ServerThink", function() 
 	if (GetGlobalInt("TestersScore") > 999 or GetGlobalInt("ScientistsScore") > 999) and (GetGlobalInt("servershut") == -1) then
-		SetGlobalInt("servershut", math.Round(CurTime() + 60*2 + 17))
+		SetGlobalInt("servershut", math.Round(RealTime() + 60*2 + 17))
 		net.Start("RoundEnd")
 		net.Broadcast()
 		Entity(1):EmitSound("/project_avatar/music/server_closing.mp3", 75, 100, 0.5)
@@ -393,7 +412,7 @@ hook.Add("Think", "ServerThink", function()
 		coroutine.resume(coro)
 		if coroutine.status(coro) == "dead" then coroutines[k] = nil end
 	end
-	if not (GetGlobalInt("servershut") == -1 or GetGlobalInt("servershut") == -2) and (GetGlobalInt("servershut") - CurTime() < 1) then
+	if not (GetGlobalInt("servershut") == -1 or GetGlobalInt("servershut") == -2) and (GetGlobalInt("servershut") - RealTime() < 1) then
 		SetGlobalInt("servershut", -2)
 		for _, ply in pairs(player:GetAll()) do
 			ply:SetTeam(TEAM_AWAITING)
@@ -406,29 +425,37 @@ hook.Add("Think", "ServerThink", function()
 			end
 		end
 	end
-	if not (GetGlobalInt("servershut") == -1 or GetGlobalInt("servershut") == -2) and (GetGlobalInt("servershut") - CurTime() < 12) then 
-		Entity(1):EmitSound("project_avatar/avatar_voicelines/servershut5sec.wav")
-	end
-	if not (GetGlobalInt("servershut") == -1 or GetGlobalInt("servershut") == -2) and (GetGlobalInt("servershut") - CurTime() > 60*2 + 16 ) then
+	if not (GetGlobalInt("servershut") == -1 or GetGlobalInt("servershut") == -2) and (GetGlobalInt("servershut") - RealTime() > 60*2 + 16 ) then
 		if not coroutines[0] == nil then return end
 		local coro = coroutine.create(function()
-
+			local stime = RealTime()
 			if GetGlobalInt("TestersScore") > 999 then
-				local stime = CurTime()
-				Entity(1):EmitSound("project_avatar/avatar_voicelines/servershut1-testers.wav")
-				while (CurTime() - stime) < 14 do coroutine.yield() end
-				Entity(1):EmitSound("project_avatar/avatar_voicelines/servershut2-testers.wav")
-				while (CurTime() - stime) < 14+9 do coroutine.yield() end
+				Entity(1):EmitSound("project_avatar/avatar_voicelines/servershut_t_1.wav")
+				print(1)
+				while (RealTime() - stime) < 9+5 do coroutine.yield() end
+				Entity(1):EmitSound("project_avatar/avatar_voicelines/failed.wav")
+				print(2)
+				while (RealTime() - stime) < 9+5+1 do coroutine.yield() end
+				Entity(1):EmitSound("project_avatar/avatar_voicelines/servershut_t_2.wav")
+				print(3)
+				while (RealTime() - stime) < 9+5+1+5 do coroutine.yield() end
+				Entity(1):EmitSound("project_avatar/avatar_voicelines/failed.wav")
+				print(4)
 			else
-				local stime = CurTime()
-				Entity(1):EmitSound("project_avatar/avatar_voicelines/servershut1-scientists.wav")
-				while (CurTime() - stime) < 11 do coroutine.yield() end
-				Entity(1):EmitSound("project_avatar/avatar_voicelines/servershut2-scientists.wav")
-				while (CurTime() - stime) < 11+8 do coroutine.yield() end
+				Entity(1):EmitSound("project_avatar/avatar_voicelines/servershut_s_1.wav")
+				while (RealTime() - stime) < 9+5 do coroutine.yield() end
+				Entity(1):EmitSound("project_avatar/avatar_voicelines/failed.wav")
+				while (RealTime() - stime) < 9+5+1 do coroutine.yield() end
+				Entity(1):EmitSound("project_avatar/avatar_voicelines/servershut_s_2.wav")
+				while (RealTime() - stime) < 9+5+1+5 do coroutine.yield() end
+				Entity(1):EmitSound("project_avatar/avatar_voicelines/failed.wav")
 			end
-
-			while (GetGlobalInt("servershut") - CurTime() > (60*2 + 16) - 52 + 10) do coroutine.yield() end
-			Entity(1):EmitSound("project_avatar/avatar_voicelines/servershut5min.wav")
+			while (RealTime() - stime) < 52-6 do 
+				print(RealTime() - stime) 
+				coroutine.yield() 
+			end
+			Entity(1):EmitSound("project_avatar/avatar_voicelines/servershut_b_3.wav")
+			print(5)
 			while true do coroutine.yield() end
 		end)
 		coroutine.resume(coro)

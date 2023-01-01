@@ -189,8 +189,8 @@ if CLIENT then
 			end
 			--screen bugs
 			if hp < 100 then
-				fade = (100-hp) / 50
-				draw.RoundedBox(0, 0, 0, ScrW(), ScrH(), Color(255,0,0,100-hp/100*200))
+				--fade = (100-hp) / 50
+				--draw.RoundedBox(0, 0, 0, ScrW(), ScrH(), Color(255,0,0,100-hp/100*200))
 				--for i=0, 25-hp/4, 1 do
 				--	draw.RoundedBox(0, math.random(0, ScrW()), math.random(0, ScrH()), 160, 90, Color(0,0,0,255))
 				--end

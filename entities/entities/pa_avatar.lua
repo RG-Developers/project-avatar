@@ -95,7 +95,7 @@ function ENT:RunBehaviour()
 	local movto
 	local tpto
 	while ( true ) do
-		self:SetHealth(10000)
+		self:SetHealth(1)
 		-- Lets use the above mentioned functions to see if we have/can find a enemy
 		if ( self:HaveEnemy() ) then
 			-- Now that we have a enemy, the code in this block will run
