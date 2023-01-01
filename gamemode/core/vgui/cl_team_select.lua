@@ -5,12 +5,16 @@ local button1 = Material("project_avatar/team/button1.png")
 local button2 = Material("project_avatar/team/button2.png")
 local hovers
 local hovert
+local hoversstarttime
+local hovertstarttime
 
 hook.Add('InitPostEntity', 'soundsload', function()
 	hovers = CreateSound(game.GetWorld(), "/project_avatar/ui/hover_scientists.wav")
 	hovert = CreateSound(game.GetWorld(), "/project_avatar/ui/hover_test_subjects.wav")
 	hovers:SetSoundLevel( -10 )
 	hovert:SetSoundLevel( -10 )
+	hoversstarttime = 0
+	hovertstarttime = 0
 end)
 
 function PANEL:Init()
@@ -46,17 +50,25 @@ function PANEL:Init()
 	end
 	self.Team1.Paint = function(s, w, h)
 		if not s.Factor then s.Factor = 0.9 end
+		s.Factor = math.Clamp(s.Factor, 0.9, 1)
 
 		if s:IsHovered() then
 			if s.Factor < 1 then
 				s.Factor = s.Factor + FrameTime()*2
 			end
-			hovers:Play()
+			if RealTime() > hoversstarttime + SoundDuration("/project_avatar/ui/hover_scientists.wav") then
+				hovers:Stop()
+				hovers:ChangeVolume(1)
+				hovers:Play()
+				hoversstarttime = RealTime()
+			end
 		else
 			if s.Factor > 0.9 then
 				s.Factor = s.Factor - FrameTime()*2
 			end
-			hovers:Stop()
+			hovers:FadeOut(0.5)
+			timer.Simple(0.5, function() hoversstarttime = 0 hovers:Stop() hovers:ChangeVolume(1) end)
+			hoversstarttime = 0
 		end
 
 		surface.SetDrawColor(255, 255, 255, 255)
@@ -83,17 +95,24 @@ function PANEL:Init()
 	end
 	self.Team2.Paint = function(s, w, h)
 		if not s.Factor then s.Factor = 0.9 end
+		s.Factor = math.Clamp(s.Factor, 0.9, 1)
 
 		if s:IsHovered() then
 			if s.Factor < 1 then
 				s.Factor = s.Factor + FrameTime()*2
 			end
-			hovert:Play()
+			if RealTime() > hovertstarttime + SoundDuration("/project_avatar/ui/hover_scientists.wav") then
+				hovert:Stop()
+				hovert:ChangeVolume(1)
+				hovert:Play()
+				hovertstarttime = RealTime()
+			end
 		else
 			if s.Factor > 0.9 then
 				s.Factor = s.Factor - FrameTime()*2
 			end
-			hovert:Stop()
+			hovert:FadeOut(0.5)
+			timer.Simple(0.5, function() hovertstarttime = 0 hovert:Stop() hovert:ChangeVolume(1) end)
 		end
 
 		surface.SetDrawColor(255, 255, 255, 255)
@@ -105,7 +124,12 @@ function PANEL:Init()
 end
 
 function PANEL:Paint(w, h)
-	surface.SetDrawColor(50, 50, 55, 250)
+	surface.SetDrawColor(
+		(math.sin(CurTime())+1)*15,
+		(math.sin(CurTime())+1)*15,
+		(math.sin(CurTime())+1)*15,
+		200
+		)
 	surface.DrawRect(0, 0, w, h)
 end
 
