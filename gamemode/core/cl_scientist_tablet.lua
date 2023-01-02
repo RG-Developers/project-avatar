@@ -8,7 +8,7 @@ hook.Add( "Think", "OnQ", function()
             show = true 
             return 
         end
-        if laststate == false and input.IsKeyDown( KEY_Q ) then
+        if laststate == false and input.IsKeyDown( KEY_Q ) and not LocalPlayer():IsTyping() then
             show = not Tablet:IsShowed()
             if show == true then
                 Tablet:Show()

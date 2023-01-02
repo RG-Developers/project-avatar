@@ -43,14 +43,7 @@ if SERVER then
     end)
     ]]--
     starttime = CurTime() + 5
-    taskcreatetime = starttime + 5
     bugcount = 0
-
-    tasks = {
-    "simpletask", -- type 'complete' to complete task (>complete)                            
-    "getinftask", -- get info about server and report it to fractal(>makereport >sendreport) 
-    "fixbugtask"  -- fix not visible bug(>autofix).                                          
-    }
 
     function getBugs()
         return ents.FindByClass("pa_bug")
@@ -84,26 +77,6 @@ if SERVER then
         bug:Remove()
     end
 
-    hook.Add("Think", "Scientist_Tasker", function() 
-        if CurTime() > starttime then
-            if CurTime() > taskcreatetime then 
-                taskcreatetime = taskcreatetime + 1
-                if math.random(0, 100) > 95 then
-                    if GetGlobalInt("ScientistsCount") < 1 then return end
-                    ply = player:GetAll()[math.random(1, player:GetCount())]
-                    while ply:Team() ~= TEAM_SCIENTISTS do
-                        ply = player:GetAll()[math.random(1, player:GetCount())]
-                    end
-                    if GetScientistTask(ply) == "none" then
-                        SetScientistTask(ply, tasks[math.random(1, #tasks)])
-                    end
-                    if GetScientistTask(ply) == "" then
-                        SetScientistTask(ply, tasks[math.random(1, #tasks)])
-                    end
-                end
-            end
-        end
-    end)
     timer.Create("createbug",10,0,function()
         if CurTime() > starttime then
             if bugcount < GetGlobalInt("TestersCount") then

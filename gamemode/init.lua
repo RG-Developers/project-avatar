@@ -264,6 +264,7 @@ function GM:PlayerDeathThink(ply)
 end
 
 hook.Add("PlayerShouldTakeDamage", "AntiTeamkill", function( ply, attacker )
+	if ply:Team() == TEAM_SCIENTISTS then return false end
 	if GetConVar("pa_friendlyfire"):GetString() == "0" then return true end
 	if attacker:IsPlayer() and ply:Team() == attacker:Team() then
 		return false
@@ -308,9 +309,10 @@ function SetClass(ply, class, subclass)
 end
 
 function SetScientistTask(ply, task)
-	SetGlobalString(ply:Name() .. "_task", task)
-	net.Start("NewTask") 
+	net.Start("pa.tasksget")
+	net.WriteTable(task) 
 	net.Send(ply)
+	SetGlobalString(ply:Name().."_task", task["name"])
 end
 util.AddNetworkString("OnTaskRuined")
 net.Receive("OnTaskRuined", function() 
@@ -544,4 +546,70 @@ concommand.Add("spawnfixer", function(_, _, args)
 	fixer:Spawn()
 end)
 
+
+------------------------------------
+------------TASKS-PART--------------
+------------------------------------
+
+local tasks = {
+	{
+		["name"] = "Fix bug",
+		["type"] = "bug",
+		["iscoop"] = false
+	},
+	{
+		["name"] = "Fix bug",
+		["type"] = "bug",
+		["iscoop"] = false
+	},
+	{
+		["name"] = "Fix bug",
+		["type"] = "bug",
+		["iscoop"] = false
+	},
+	{
+		["name"] = "Fix bug",
+		["type"] = "bug",
+		["iscoop"] = false
+	},
+	{
+		["name"] = "Fix bug",
+		["type"] = "bug",
+		["iscoop"] = false
+	},
+	{
+		["name"] = "Fix bug",
+		["type"] = "bug",
+		["iscoop"] = false
+	}
+}
+
+local task = {
+	["name"] = "", -- Update, fix, scan,   shutd, etc
+	["type"] = "", -- avatar, bug, tester, alert, etc
+	["iscoop"] = false -- is coop?
+}
+
+util.AddNetworkString("pa.tasksget")
+
+timer.Create("tasker", 15, 0, function() 
+	if GetGlobalInt("ScientistsCount") < 1 then return end
+	local ply = player:GetAll()[math.random(1, player:GetCount())]
+	local tries = 0
+	while (ply:Team() ~= TEAM_SCIENTISTS or 
+		GetScientistTask(ply) ~= "none" or GetScientistTask(ply) ~= "") and
+		tries < 10 do
+		ply = table.Random(player.GetAll())
+		tries = tries + 1
+	end
+	if GetScientistTask(ply) == "none" then
+		SetScientistTask(ply, table.Random(tasks))
+	end
+	if GetScientistTask(ply) == "" then
+		SetScientistTask(ply, table.Random(tasks))
+	end
+end)
+
 print("Serverside running!")
+
+--можешь пока что сделать команды в плашнете? cl_tablet_lib	 - ExecuteCommand(), там в хелпе всё описано

@@ -1,5 +1,22 @@
 local tabletlib = {}
 local lockdown = false
+local task = {
+	["name"] = "", -- Update, fix, scan,   shutd, etc
+	["type"] = "", -- avatar, bug, tester, alert, etc
+	["iscoop"] = false -- is coop?
+}
+
+net.Receive("pa.tasksget",function()
+	task = net.ReadTable()
+	if IsValid(desktop) then
+		local wx, wy, ww, wh = desktop:GetWorkWH()
+		if task["type"] ~= "alert" then
+			tabletlib.createWindow(wx, wy, 160, 90, "New task", true, Color(55, 55, 55), "new task appeared.")
+		else
+			tabletlib.createAlertWindow(wx, wy, 160, 90, "New task", true, "new alert task appeared.", "ok\\as myself")
+		end
+	end
+end)
 
 local AVATAR = Material("project_avatar/hud/sc/avatar.png")
 local TESTER = Material("project_avatar/hud/sc/tester.png")
@@ -91,7 +108,8 @@ function PlayerByName(name) for i, ply in pairs(player:GetAll()) do if ply:Name(
 classes = {"None", "Garry", "Circle", "Newguy", "Kratos"}
 
 function tabletlib.createWindow(x, y, w, h, title, draggable, color, text)
-	local window = vgui.Create("DFrame")
+	local window = vgui.Create("DFrame", desktop)
+
 	window:SetDraggable(draggable or true)
 	window:SetSize(w or 160, h or 90)
 	--window:SetSizeable(false)
@@ -99,7 +117,11 @@ function tabletlib.createWindow(x, y, w, h, title, draggable, color, text)
 	window:SetTitle(title or "Window")
 	window:ShowCloseButton(false)
 	window.color = color or Color(55, 55, 55, 255)
-	function window:Paint(w, h)
+	window.Paint = function(self, w, h)
+		local wx, wy, ww, wh = desktop:GetWorkWH()
+		local sx, sy = self:GetPos()
+		self:SetPos(math.Clamp(sx, wx, wx+ww-w), math.Clamp(sy, wy, wy+wh-h))
+
 		draw.RoundedBox(0, 0, 0, w, h, self.color)
 		draw.RoundedBox(0, 0, 0, w, 22, Color(0, 0, 0, 255))
 	end
@@ -107,10 +129,10 @@ function tabletlib.createWindow(x, y, w, h, title, draggable, color, text)
 	window.close = vgui.Create("DButton", window)
 	window.close:SetPos(w-22, 0)
 	window.close:SetText("X")
-	function window.close:DoClick()
+	window.close.DoClick = function()
 		window:Close()
 	end
-	function window.close:Paint()
+	window.close.Paint = function()
 		draw.RoundedBox(0, 0, 0, w, h, Color(255,0,0,255))
 		draw.DrawText("X", "DermaDefault", 7, 4)
 	end
@@ -126,7 +148,7 @@ function tabletlib.createWindow(x, y, w, h, title, draggable, color, text)
 end
 
 function tabletlib.createAlertWindow(x, y, w, h, title, draggable, text, oktext)
-	local window = vgui.Create("DFrame")
+	local window = vgui.Create("DFrame", desktop)
 	window:SetDraggable(draggable or true)
 	window:SetSize(w or 160, h or 90)
 	--window:SetSizeable(false)
@@ -351,7 +373,8 @@ end
 function tabletlib.show()
 	desktop = tabletlib.createDesktop("project_avatar/hud/sc/tablet_wp.png", "project_avatar/hud/sc/tablet.png", ScrW(), ScrH())
     desktop:SetZPos(0)
-    tabletlib.Main = desktop
+	tabletlib.Main = desktop
+	--    х у  шр  вс
     local _,_, dw, dh = desktop:GetWorkWH()
     rth = dh/2*1.25-20
     rtw = dw-20
@@ -390,7 +413,7 @@ function tabletlib.show()
                 render.SetColorMaterial()
                 if ent:GetClass() == "pa_avatar" then render.SetMaterial( AVATAR )
                 elseif ent:GetClass() == "player" then 
-                    if ent:Team() == TEAM_TEST_SUBJECTS then render.SetMaterial( TESTER ) else render.SetMaterial( FIXER ) end
+                    if ent:Team() == TEAM_TESTSUBJECTS or ent:Team() == TEAM_TESTSUBJECTS_BOOSTED then render.SetMaterial( TESTER ) else render.SetMaterial( FIXER ) end
                 elseif ent:GetClass() == "pa_bug" then col = render.SetMaterial( BUG )
                 elseif ent:GetClass() == "npc_combine_s" then render.SetMaterial( FIXER ) 
                 else continue end
@@ -454,8 +477,10 @@ function tabletlib.show()
         self:SetText("")
     end
     terminalpanel.entry.Paint = function(self, w, h)
-        draw.RoundedBox(5, 0, 0, w, h, Color(155,155,155))
-        draw.DrawText(self:GetValue() or self:GetPlaceholderText(), "Default")
+		if not self:HasFocus() then
+			draw.RoundedBox(5, 0, 0, w, h, Color(155,155,155))
+		end
+        draw.DrawText("[global@fractalos ~]$ " .. self:GetValue(), "Default")
     end
 
     close = tabletlib.createDesktopIcon(desktop, 64, 0, rth + 10)
@@ -497,7 +522,7 @@ function tabletlib.show()
             SliderPY:SetSlideY(0.5)
             SliderPY:SetSlideX(0.5)
         end
-        rt_rot.p = math.Clamp(rt_rot.p - (0.5-SliderPY:GetSlideY())*5, 90, 270)
+        rt_rot.p = math.Clamp(rt_rot.p - (0.5-SliderPY:GetSlideY())*5, -90, 90)
         rt_rot.y = (rt_rot.y + (0.5-SliderPY:GetSlideX())*5) % 360
     end
     SliderPY:SetLockX(nil)

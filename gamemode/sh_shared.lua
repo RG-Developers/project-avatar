@@ -85,7 +85,7 @@ function GetAvatarState(state)
 	return GetGlobalBool("AvatarState")
 end
 function GetScientistTask(ply)
-	return GetGlobalString(ply:Name() .. "_task") or "none"
+	return SetGlobalString(ply:Name().."_task") or "none"
 end
 
 print("Shared data running!")
