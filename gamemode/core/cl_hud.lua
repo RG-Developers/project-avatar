@@ -189,11 +189,11 @@ if CLIENT then
 			end
 			--screen bugs
 			if hp < 100 then
-				--fade = (100-hp) / 50
-				--draw.RoundedBox(0, 0, 0, ScrW(), ScrH(), Color(255,0,0,100-hp/100*200))
-				--for i=0, 25-hp/4, 1 do
-				--	draw.RoundedBox(0, math.random(0, ScrW()), math.random(0, ScrH()), 160, 90, Color(0,0,0,255))
-				--end
+				fade = (100-hp) / 50
+				draw.RoundedBox(0, 0, 0, ScrW(), ScrH(), Color(255,0,0,100-hp/100*200))
+				for i=0, 25-hp/4, 1 do
+					draw.RoundedBox(0, math.random(0, ScrW()), math.random(0, ScrH()), 10, 10, Color(0,0,0,255))
+				end
 			else
 				fade = 0
 			end
@@ -251,7 +251,13 @@ if CLIENT then
 				oldhp = hp
 				coroutines = {}
 				fade = 0
-				crsound:Stop()
+				if crsound:IsPlaying() then
+					crsound:Stop()
+					RunConsoleCommand("-forward")
+					RunConsoleCommand("-moveright")
+					RunConsoleCommand("-moveleft")
+					RunConsoleCommand("-back")
+				end
 				return
 			end
 
@@ -287,6 +293,7 @@ if CLIENT then
 				end)
 				coroutines[#coroutines+1] = deathcoro
 				coroutine.resume(deathcoro, CurTime())
+				return
 			end
 			if errors < 1 then return end
 			if hp > 5 then
@@ -311,18 +318,28 @@ if CLIENT then
 							local dx = errx+math.random(-5, 5)
 							local dy = erry+math.random(-5, 5)
 							if affects == 'move' then
+								local mrand = math.random(0, 3)
 								RunConsoleCommand("-forward")
 								RunConsoleCommand("-moveright")
 								RunConsoleCommand("-moveleft")
 								RunConsoleCommand("-back")
+								if mrand == 0 then
+									RunConsoleCommand("+forward")
+								elseif mrand == 1 then
+									RunConsoleCommand("+moveright")
+								elseif mrand == 2 then
+									RunConsoleCommand("+moveleft")
+								else
+									RunConsoleCommand("+back")
+								end
 							elseif affects == 'visual' then
-								draw.RoundedBox(0, math.random(0, ScrW()-10), math.random(0, ScrH()-10), 10, 10, Color(0,0,0))
-								draw.RoundedBox(0, math.random(0, ScrW()-10), math.random(0, ScrH()-10), 10, 10, Color(0,0,0))
-								draw.RoundedBox(0, math.random(0, ScrW()-10), math.random(0, ScrH()-10), 10, 10, Color(0,0,0))
-								draw.RoundedBox(0, math.random(0, ScrW()-10), math.random(0, ScrH()-10), 10, 10, Color(0,0,0))
-								draw.RoundedBox(0, math.random(0, ScrW()-10), math.random(0, ScrH()-10), 10, 10, Color(0,0,0))
+								draw.RoundedBox(0, math.random(0, ScrW()-50), math.random(0, ScrH()-50), 50, 50, Color(0,0,0))
+								draw.RoundedBox(0, math.random(0, ScrW()-50), math.random(0, ScrH()-50), 50, 50, Color(0,0,0))
+								draw.RoundedBox(0, math.random(0, ScrW()-50), math.random(0, ScrH()-50), 50, 50, Color(0,0,0))
+								draw.RoundedBox(0, math.random(0, ScrW()-50), math.random(0, ScrH()-50), 50, 50, Color(0,0,0))
+								draw.RoundedBox(0, math.random(0, ScrW()-50), math.random(0, ScrH()-50), 50, 50, Color(0,0,0))
 							elseif affects == 'sound' then
-								--RunConsoleCommand("stopsound")
+								surface.PlaySound("/project_avatar/damage/soundprocfail.wav")
 							end
 							draw.RoundedBox( 0, dx, dy, 
 								ScrW()*0.25, ScrH()*0.15, 
@@ -334,6 +351,12 @@ if CLIENT then
 							coroutine.yield((((endtime - CurTime()) / (endtime - starttime)) / 2))
 						end
 						coroutine.yield(0)
+						if affects == 'move' then
+							RunConsoleCommand("-forward")
+							RunConsoleCommand("-moveright")
+							RunConsoleCommand("-moveleft")
+							RunConsoleCommand("-back")
+						end
 					end)
 					coroutines[#coroutines+1] = coro
 					coroutine.resume(coro, header, info, affects, errorn, endtime, CurTime())
@@ -361,7 +384,7 @@ if CLIENT then
 						else
 							seconds = left
 						end
-						statcrit = "!!STATE CRITICAL!!"
+						statcrit = "!! STATE CRITICAL !!"
 						distime = "DISCONNECT IN T-"..seconds.." SECONDS"
 
 						largest = math.max(select(1, surface.GetTextSize( statcrit )), select(1, surface.GetTextSize( distime )))
@@ -385,10 +408,20 @@ if CLIENT then
 							draw.RoundedBox(0, math.random(0, ScrW()-10), math.random(0, ScrH()-10), 10, 10, Color(0,0,0))
 						end
 						if left < 5 then
+							local mrand = math.random(0, 3)
 							RunConsoleCommand("-forward")
 							RunConsoleCommand("-moveright")
 							RunConsoleCommand("-moveleft")
 							RunConsoleCommand("-back")
+							if mrand == 0 then
+								RunConsoleCommand("+forward")
+							elseif mrand == 1 then
+								RunConsoleCommand("+moveright")
+							elseif mrand == 2 then
+								RunConsoleCommand("+moveleft")
+							else
+								RunConsoleCommand("+back")
+							end
 						end
 
 						draw.DrawText(statcrit, "bfont", dx-select(1, surface.GetTextSize( statcrit )) / 2, dy, Color( 255, 255, 255, 255 ) )

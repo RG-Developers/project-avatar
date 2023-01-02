@@ -363,7 +363,7 @@ function tabletlib.show()
     function rtview:Paint(w, h)
         if not rendercam then 
         	draw.RoundedBox(0, 0, 0, w, h, Color(0,0,0))
-        	draw.DrawText("No signal from RTCAM_0\n\nInternal server error", "Default")
+        	draw.DrawText("No signal from RTCAM_0", "Default")
         	return
         end
         rt_pos = util.TraceLine( {
@@ -383,14 +383,7 @@ function tabletlib.show()
             aspect = w / h,
             fov = 90
         } )
-        cam.Start3D()
-        	for _, ent in pairs(ents.GetAll()) do
-        		ent:DrawModel()
-        	end
-        cam.End3D()
 
-
-        --[[
         cam.Start3D()
             for _, ent in pairs(ents.GetAll()) do
                 --print(ent:GetClass())
@@ -422,9 +415,7 @@ function tabletlib.show()
                             render.DrawSprite( ent:GetPos()+Vector(0,-(120*3) + 120*i,100), 120, 120, Color(255,255,255) )
                         end
                     end
-                    ]]
-                    --if input.IsKeyDown(keys[qte[7-(next or 1)]]) then
-                    --[[
+                    if input.IsKeyDown(keys[qte[7-(next or 1)]]) then
                         next = (next or 1) + 1
                         pressed = pressed + 1
                         if next >= 7 then
@@ -438,7 +429,6 @@ function tabletlib.show()
                 end
             end
         cam.End3D()
-        ]]
         local rt_pos_t = "X" .. rt_pos.x .. " Y" .. rt_pos.y .. " Z" .. rt_pos.z
         local rt_rot_t = "P" .. rt_rot.p .. " Y" .. rt_rot.y
         draw.DrawText("From RTCAM_0...\n\nPos: " .. rt_pos_t .. "\nAngle:" .. rt_rot_t , "Default")
@@ -491,9 +481,9 @@ function tabletlib.show()
         if not SliderM:IsEditing() then
             SliderM:SetSlideY(0.5)
         end
-        rt_offset.x = math.floor(rt_offset.x + rt_rot:Forward().x*(0.5-SliderM:GetSlideY())*50)
-        rt_offset.y = math.floor(rt_offset.y + rt_rot:Forward().y*(0.5-SliderM:GetSlideY())*50)
-        rt_pos_z = math.floor(rt_pos_z + rt_rot:Forward().z*(0.5-SliderM:GetSlideY())*50)
+        rt_offset.x = rt_offset.x + rt_rot:Forward().x*(0.5-SliderM:GetSlideY())*50
+        rt_offset.y = rt_offset.y + rt_rot:Forward().y*(0.5-SliderM:GetSlideY())*50
+        rt_pos_z = rt_pos_z + rt_rot:Forward().z*(0.5-SliderM:GetSlideY())*50
     end
     SliderM:SetLockX(0.5)
     SliderM:SetLockY(nil)
@@ -507,8 +497,8 @@ function tabletlib.show()
             SliderPY:SetSlideY(0.5)
             SliderPY:SetSlideX(0.5)
         end
-        rt_rot.p = math.floor(rt_rot.p - (0.5-SliderPY:GetSlideY())*5)
-        rt_rot.y = math.floor(rt_rot.y + (0.5-SliderPY:GetSlideX())*5)
+        rt_rot.p = math.Clamp(rt_rot.p - (0.5-SliderPY:GetSlideY())*5, 90, 270)
+        rt_rot.y = (rt_rot.y + (0.5-SliderPY:GetSlideX())*5) % 360
     end
     SliderPY:SetLockX(nil)
     SliderPY:SetLockY(nil)

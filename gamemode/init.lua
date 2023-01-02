@@ -42,7 +42,7 @@ function MakeLight( r, g, b, brght, size, parent )
 
 		return lamp
 
-	end
+end
 
 function GM:PlayerDeathSound( ply )
 	return true
@@ -77,7 +77,7 @@ function GM:PlayerSpawn(ply)
 	end
 	if ply:Team() == TEAM_SCIENTISTS then
 		player_manager.SetPlayerClass(ply, "player_scientist")
-		ply:AllowFlashlight(true)
+		ply:AllowFlashlight(false)
 	elseif ply:Team() == TEAM_TESTSUBJECTS then
 		player_manager.SetPlayerClass(ply, "player_testsubject")
 		ply:AllowFlashlight(true)
@@ -87,6 +87,7 @@ function GM:PlayerSpawn(ply)
 	elseif ply:Team() == TEAM_FIXERS then
 		player_manager.SetPlayerClass(ply, "player_fixer")
 		ply:AllowFlashlight(true)
+		ply:EmitSound("/project_avatar/fixers_voicelines/spawn_"..math.random(1,4)..".wav")
 	else
 		player_manager.SetPlayerClass(ply, "player_default")
 		ply:AllowFlashlight(false)
@@ -173,12 +174,18 @@ function GM:OnNPCKilled(Victim, _, _)
 	end
 end
 
-function GM:PlayerDeath(ply, _, _)
+function GM:PostPlayerDeath(ply, _, atk)
 	if ply:Team() == TEAM_FIXERS then
+		if IsValid(ply:GetRagdollEntity()) then ply:GetRagdollEntity():Remove() end
+	end
+end
+
+function GM:PlayerDeath(ply, _, atk)
+	if ply:Team() == TEAM_FIXERS then
+		ply:GetRagdollEntity():Remove() 
 		local plyang = ply:GetAngles()
 		local plyvel = ply:GetVelocity()
 		local plypos = ply:GetPos()
-		local oldragdoll = ply:GetRagdollEntity()
 		local brainmelt = ents.Create("prop_ragdoll")
 		local brainmelto = ents.Create("prop_ragdoll")
 		brainmelt:SetModel("models/hammerdude_ragdoll.mdl")
@@ -208,8 +215,8 @@ function GM:PlayerDeath(ply, _, _)
 		util.Effect( "propdespawn", ed, true, true )
 		timer.Simple( 1, function() if ( IsValid( brainmelto ) ) then brainmelto:Remove() end end )
 		MakeLight(0, 255, 0, 255, 500, brainmelt)
-		ply:GetRagdollEntity():Remove() 
 		ply:SetTeam(TEAM_AWAITING)
+		ply:GetRagdollEntity():Remove() 
 		--ply:SetObserverMode(OBS_MODE_IN_EYE)
 		--ply:Spectate(OBS_MODE_IN_EYE)
 		local coro = coroutine.create(function(model, freeze) 
@@ -224,6 +231,10 @@ function GM:PlayerDeath(ply, _, _)
 		coroutine.resume(coro, brainmelt, CurTime() + 1.5)
 		coroutines[ply:EntIndex()+1000] = coro
 	elseif ply:Team() == TEAM_TESTSUBJECTS or ply:Team() == TEAM_TESTSUBJECTS_BOOSTED then
+		if atk:IsPlayer() and atk:Team() == TEAM_FIXERS then
+			atk:EmitSound("/project_avatar/fixers_voicelines/testerkilled_"..math.random(1,6)..".wav")
+			atk:SetNWBool("spottester", false)
+		end 
 		ply:SetNWString("deathtimerid",tostring(math.random(100,999)))
     	ply:SetNWBool("respawn_allowed",false)
     	timer.Create("deathtimer_"..ply:GetNWString("deathtimerid",0),60,1,function() -- создаём таймер
@@ -253,6 +264,7 @@ function GM:PlayerDeathThink(ply)
 end
 
 hook.Add("PlayerShouldTakeDamage", "AntiTeamkill", function( ply, attacker )
+	if GetConVar("pa_friendlyfire"):GetString() == "0" then return true end
 	if attacker:IsPlayer() and ply:Team() == attacker:Team() then
 		return false
 	end
@@ -461,10 +473,27 @@ hook.Add("Think", "ServerThink", function()
 		coroutine.resume(coro)
 		coroutines[0] = coro
 	end
+
+	for k, v in pairs(player.GetAll()) do
+		if v:Team() ~= TEAM_FIXERS or v:GetNWBool("spottester") then continue end
+		local trent = v:GetEyeTrace().Entity
+		if trent:IsPlayer() and ( trent:Team() == TEAM_TESTSUBJECTS or trent:Team() == TEAM_TESTSUBJECTS_BOOSTED ) then
+			v:EmitSound("/project_avatar/fixers_voicelines/testerspot_"..math.random(1, 9)..".wav")
+			v:SetNWBool("spottester", true)
+		end
+	end
 end)
 
 hook.Add("EntityTakeDamage", "FixerSuitNotLocked", function(ply, dmg) 
-	if ply:IsPlayer() and ply:Team() == TEAM_FIXERS and dmg:IsBulletDamage() and not (dmg:GetDamageType() == DMG_GENERIC) and math.random(0,100) > 75 then --FULL WORK
+	if ply:GetNWInt("ffdmg") == nil then ply:SetNWInt("ffdmg", RealTime()) end
+	if ply:IsPlayer() and ply:Team() == TEAM_FIXERS and dmg:GetAttacker():IsPlayer() and dmg:GetAttacker():Team() == TEAM_FIXERS and ply:GetNWInt("ffdmg") < RealTime() then
+		ply:EmitSound("/project_avatar/fixers_voicelines/friendlyfire_"..math.random(1,5)..".wav")
+		ply:SetNWInt("ffdmg", RealTime()+2)
+	elseif ply:IsPlayer() and ply:Team() == TEAM_FIXERS and ply:GetNWInt("dmg") < RealTime() and ply:GetNWInt("ffdmg") < RealTime() then
+		ply:EmitSound("/project_avatar/fixers_voicelines/genericdamage_"..math.random(1,5)..".wav")
+		ply:SetNWInt("ffdmg", RealTime()+2)
+	end
+	if ply:IsPlayer() and ply:Team() == TEAM_FIXERS and dmg:IsBulletDamage() and not (dmg:GetDamageType() == DMG_GENERIC) and ply:Health() < 50 then --FULL WORK
 	--if ply:IsPlayer() and ply:Team() == TEAM_FIXERS then         --ONLY FOR TESTS COMMENT IN RELEASE
 		if coroutines[ply:EntIndex()] then return end
 		if IsValid(coroutines[ply:EntIndex()]) then return end
@@ -494,7 +523,12 @@ hook.Add( "PlayerNoClip", "noclip", function( ply )
 end)
 
 concommand.Add("setteam", function(_, _, args) 
+	local pos = player:GetAll()[tonumber(args[1])]:GetPos()
+	local ang = player:GetAll()[tonumber(args[1])]:GetAngles()
 	player:GetAll()[tonumber(args[1])]:SetTeam(tonumber(args[2]) or 0)
+	player:GetAll()[tonumber(args[1])]:Spawn()
+	player:GetAll()[tonumber(args[1])]:SetPos(pos)
+	player:GetAll()[tonumber(args[1])]:SetAngles(ang)
 end)
 
 concommand.Add("spawnfixer", function(_, _, args) 

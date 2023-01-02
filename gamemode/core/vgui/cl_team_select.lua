@@ -66,8 +66,7 @@ function PANEL:Init()
 			if s.Factor > 0.9 then
 				s.Factor = s.Factor - FrameTime()*2
 			end
-			hovers:FadeOut(0.5)
-			timer.Simple(0.5, function() hoversstarttime = 0 hovers:Stop() hovers:ChangeVolume(1) end)
+			hovers:Stop()
 			hoversstarttime = 0
 		end
 
@@ -111,8 +110,8 @@ function PANEL:Init()
 			if s.Factor > 0.9 then
 				s.Factor = s.Factor - FrameTime()*2
 			end
-			hovert:FadeOut(0.5)
-			timer.Simple(0.5, function() hovertstarttime = 0 hovert:Stop() hovert:ChangeVolume(1) end)
+			hovert:Stop()
+			hovertstarttime = 0
 		end
 
 		surface.SetDrawColor(255, 255, 255, 255)
