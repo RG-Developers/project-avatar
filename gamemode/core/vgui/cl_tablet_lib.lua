@@ -392,14 +392,9 @@ function tabletlib.show()
         	draw.DrawText("No signal from RTCAM_0", "Default")
         	return
         end
-        rt_pos = util.TraceLine( {
-            start = rt_offset,
-            endpos = rt_offset + Vector(0,0,10000) * 10000,
-            filter = function( ent ) return false end
-        } ).HitPos
-        rt_pos = Vector(rt_pos.x + rt_offset.x, 
-        				rt_pos.y + rt_offset.y, 
-        				rt_pos_z)
+        rt_pos = Vector(rt_offset.x, 
+        				rt_offset.y, 
+        				rt_offset.z)
         local x, y = self:GetPos()
         render.RenderView( {
             origin = rt_pos,
@@ -422,7 +417,7 @@ function tabletlib.show()
                 local ep = ent:GetPos()+ent:OBBCenter()
                 render.DrawSprite( ep, 120, 120, Color(255,255,255) )
                 if ent:GetClass() == "player" and (ent:Team() == TEAM_TESTSUBJECTS or 
-                	ent:Team() == TEAM_TESTSUBJECTS_BOOSTED or ent:Team() == TEAM_FIXERS or true) then
+                	ent:Team() == TEAM_TESTSUBJECTS_BOOSTED or ent:Team() == TEAM_FIXERS) then
                 	render.SetColorMaterial()
                 	render.DrawBeam(ep, rt_pos-Vector(0,0,100), 5, 0, 1, Color(255,255,255))
                 end
@@ -459,8 +454,8 @@ function tabletlib.show()
                 end
             end
         cam.End3D()
-        local rt_pos_t = "X" .. rt_pos.x .. " Y" .. rt_pos.y .. " Z" .. rt_pos.z
-        local rt_rot_t = "P" .. rt_rot.p .. " Y" .. rt_rot.y
+        local rt_pos_t = "X" .. math.floor(rt_pos.x) .. " Y" .. math.floor(rt_pos.y) .. " Z" .. math.floor(rt_pos.z)
+        local rt_rot_t = "P" .. math.floor(rt_rot.p) .. " Y" .. math.floor(rt_rot.y)
         draw.DrawText("From RTCAM_0...\n\nPos: " .. rt_pos_t .. "\nAngle:" .. rt_rot_t , "Default")
     end
 
@@ -515,7 +510,7 @@ function tabletlib.show()
         end
         rt_offset.x = rt_offset.x + rt_rot:Forward().x*(0.5-SliderM:GetSlideY())*50
         rt_offset.y = rt_offset.y + rt_rot:Forward().y*(0.5-SliderM:GetSlideY())*50
-        rt_pos_z = rt_pos_z + rt_rot:Forward().z*(0.5-SliderM:GetSlideY())*50
+        rt_offset.z = rt_offset.z + rt_rot:Forward().z*(0.5-SliderM:GetSlideY())*50
     end
     SliderM:SetLockX(0.5)
     SliderM:SetLockY(nil)
@@ -548,45 +543,107 @@ function tprint(string)
 	term[#term+1] = string
 end
 
+function toverride(nterm)
+	term = nterm
+end
+
+commands = {}
+
+function tabletlib.registercmd(name, args, callable, desc)
+	argsm = {}
+	if args[1] == "*" then
+		commands[name] = {{-2}, callable, desc}
+		return
+	end
+	for k, v in pairs(args) do
+		if v == "..." then
+			argsm[#argsm+1] = -1
+			commands[name] = {argsm, callable, desc}
+			return
+		end
+		argsm[#argsm+1] = k
+	end
+	commands[name] = {argsm, callable, desc}
+end
+
+function table.tostring(tbl)
+    local result = ""
+    local tbl = tbl or {}
+    print(tbl)
+    for k, v in pairs(tbl) do
+        -- Check the value type
+        if type(v) == "table" then
+            result = result..table.tostring(v)
+        elseif type(v) == "boolean" then
+            result = result..tostring(v)
+        else
+            result = result..v
+        end
+        result = result.." "
+    end
+    -- Remove leading commas from the result
+    if result ~= "" then
+        result = result:sub(1, result:len()-1)
+    end
+    return result
+end
+
 function tabletlib.executeCommand(inp)
 	tprint("[global@fractalos ~]$ " .. inp)
 	if inp:find("^#") then return end
 
-	cmd = inp:Explode(" ")[1]
-	args = inp:sub(#cmd)
+	cmd = string.split(inp)[1]
+	args = inp:sub(#cmd+2)
 
-	if cmd == "clear" then
-		term = {}
+	if commands[cmd] then
+		if commands[cmd][1][1] == -1 then
+			commands[cmd][2](args)
+			return
+		end
+		if commands[cmd][1][1] == -2 then
+			commands[cmd][2](args)
+			return
+		end
+		if #string.split(args) > #commands[cmd][1] and commands[cmd][1][#commands[cmd][1]] ~= -1 then
+			tprint("fsh: " .. cmd .. ": Too many arguments")
+			return
+		end
+		if #string.split(args) < #commands[cmd][1] then
+			tprint("fsh: " .. cmd .. ": Too few arguments")
+			return
+		end
+		if commands[cmd][1][#commands[cmd][1]] == -1 then
+			topassargs = {
+				unpack(string.split(args), 1, #commands[cmd][1]-1), 
+				table.tostring(
+					{unpack(string.split(args), #commands[cmd][1]-1, #args)}
+				)
+			}
+		else
+			topassargs = string.split(args)
+		end
+		commands[cmd][2](topassargs)
 		return
 	end
-	if cmd == "help" then
-		tprint("Fractal OS Terminal help")
-		tprint("help - Display this text")
-		tprint("clear - Clear terminal output")
-		tprint("echo <text...> - Echo inputted text back")
-		tprint("ping - Ping all players on server")
-		tprint("tasknf - Print info about received task")
-		tprint("camtp <x> <y> <z> - Teleport camera to coordinates")
-		tprint("[PREnv] stc <plyid> <clsid> - Set test subject subclass (Garry, Kratos, Circle, Newguy)")
-		tprint("[PREnv] vtstart - Vote for server start")
-		return
-	end
-	if cmd == "ping" then
-		for k, v in pairs(player.GetAll()) do
-            if v:Team() == TEAM_TESTSUBJECTS then
-                tprint(v:Name() .. ":")
-                tprint("  " .. "Ping: " .. 105-v:Health() .. "ns")
-            end
-        end
-        return
-	end
-	if cmd == "echo" then
-		tprint(args)
-		return
-	end
-
 	tprint("fsh: Unknown command \"" .. cmd .. "\"")
 end
+tabletlib.registercmd("help", {"*"}, function()
+	tprint("Fractal OS Terminal help")
+	for k,v in pairs(commands) do
+		tprint(k .. " - " .. v[3])
+	end
+end, "Fractal OS Terminal help")
+
+--[[
+"help - Display this text"
+"clear - Clear terminal output"
+"echo <text...> - Echo inputted text back"
+"ping - Ping all players on server"
+"tasknf - Print info about received task"
+"camtp <x> <y> <z> - Teleport camera to coordinates"
+"stc <plyid> <clsid> - [PREnv] Set test subject subclass (Garry, Kratos, Circle, Newguy)"
+"vtstart - [PREnv] Vote for server start"
+]]
 
 net.Receive("RoundEnd", function(_, ply)
 	if tabletlib.shown() then
