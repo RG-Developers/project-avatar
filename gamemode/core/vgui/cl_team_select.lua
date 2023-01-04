@@ -1,8 +1,8 @@
 PANEL = {}
 
 local bg = Material("project_avatar/team/bg.png")
-local button1 = Material("project_avatar/team/button1.png")
-local button2 = Material("project_avatar/team/button2.png")
+local button1 = Material("project_avatar/team/scientists_team.png")
+local button2 = Material("project_avatar/team/subjects_team.png")
 local hovers
 local hovert
 local hoversstarttime

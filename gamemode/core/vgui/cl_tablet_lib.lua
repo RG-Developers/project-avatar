@@ -18,11 +18,11 @@ net.Receive("pa.tasksget",function()
 	end
 end)
 
-local AVATAR = Material("project_avatar/hud/sc/avatar.png")
-local TESTER = Material("project_avatar/hud/sc/tester.png")
-local FIXER = Material("project_avatar/hud/sc/fixer.png")
-local BUG = Material("project_avatar/hud/sc/bug.png")
-local QTE = Material("project_avatar/hud/sc/qte.png")
+local AVATAR = Material("project_avatar/hud/sc/tablet/avatar.png")
+local TESTER = Material("project_avatar/hud/sc/tablet/tester.png")
+local FIXER = Material("project_avatar/hud/sc/tablet/fixer.png")
+local BUG = Material("project_avatar/hud/sc/tablet/bug.png")
+local QTE = Material("project_avatar/hud/sc/tablet/qte.png")
 local keysmats = {
     Material("project_avatar/hud/sc/letters/a.png"),
     Material("project_avatar/hud/sc/letters/b.png"),
@@ -69,7 +69,10 @@ local rt_mat = CreateMaterial("scientist_cam", "UnlitGeneric", {
     ["$basetexture"] = ""
 })
 
-local splashes = {"Use 'help' command to get list of commands"}
+local splashes = {
+	"Use 'help' command to get list of commands",
+	"Welcome back!"
+}
 
 local rt_pos = Vector(0, 0, 0)
 local rt_ang = Vector(90, 0, 0)
@@ -196,8 +199,8 @@ function tabletlib.createAlertWindow(x, y, w, h, title, draggable, text, oktext)
 end
 
 function tabletlib.createDesktop(wallpaperpath, tabletpath, w, h)
-	local tablet_texture = Material("project_avatar/hud/sc/tablet.png")
-	local tablet_wallpaper = Material("project_avatar/hud/sc/tablet_wp.png")
+	local tablet_texture = Material(tabletpath)
+	local tablet_wallpaper = Material(wallpaperpath)
 	local Main = vgui.Create( "DFrame")
     Main:SetPos( 0, 0 )
     Main:SetSize( w, h )
@@ -371,7 +374,7 @@ function createLockdownDesktop(Main)
 end
 
 function tabletlib.show()
-	desktop = tabletlib.createDesktop("project_avatar/hud/sc/tablet_wp.png", "project_avatar/hud/sc/tablet.png", ScrW(), ScrH())
+	desktop = tabletlib.createDesktop("project_avatar/hud/sc/tablet/tablet_wp.png", "project_avatar/hud/sc/tablet/tablet.png", ScrW(), ScrH())
     desktop:SetZPos(0)
 	tabletlib.Main = desktop
 	--    х у  шр  вс
@@ -410,7 +413,6 @@ function tabletlib.show()
         cam.Start3D()
             for _, ent in pairs(ents.GetAll()) do
                 --print(ent:GetClass())
-                render.SetColorMaterial()
                 if ent:GetClass() == "pa_avatar" then render.SetMaterial( AVATAR )
                 elseif ent:GetClass() == "player" then 
                     if ent:Team() == TEAM_TESTSUBJECTS or ent:Team() == TEAM_TESTSUBJECTS_BOOSTED then render.SetMaterial( TESTER ) else render.SetMaterial( FIXER ) end
@@ -419,6 +421,11 @@ function tabletlib.show()
                 else continue end
                 local ep = ent:GetPos()+ent:OBBCenter()
                 render.DrawSprite( ep, 120, 120, Color(255,255,255) )
+                if ent:GetClass() == "player" and (ent:Team() == TEAM_TESTSUBJECTS or 
+                	ent:Team() == TEAM_TESTSUBJECTS_BOOSTED or ent:Team() == TEAM_FIXERS or true) then
+                	render.SetColorMaterial()
+                	render.DrawBeam(ep, rt_pos-Vector(0,0,100), 5, 0, 1, Color(255,255,255))
+                end
                 if ent:GetClass() == "pa_bug" and not ent:GetNWBool("QTEdone") and ent:GetNWBool("hasQTE") then
                     render.SetMaterial( QTE )
                     local qtev = ent:GetPos()+ent:OBBCenter()+Vector(600,0,1000)
@@ -541,9 +548,13 @@ function tprint(string)
 	term[#term+1] = string
 end
 
-function tabletlib.executeCommand(cmd)
-	tprint("[global@fractalos ~]$ " .. cmd)
-	if cmd:find("^#") then return end
+function tabletlib.executeCommand(inp)
+	tprint("[global@fractalos ~]$ " .. inp)
+	if inp:find("^#") then return end
+
+	cmd = inp:Explode(" ")[1]
+	args = inp:sub(#cmd)
+
 	if cmd == "clear" then
 		term = {}
 		return
@@ -552,10 +563,11 @@ function tabletlib.executeCommand(cmd)
 		tprint("Fractal OS Terminal help")
 		tprint("help - Display this text")
 		tprint("clear - Clear terminal output")
-		tprint("echo - Echo inputted text back")
+		tprint("echo <text...> - Echo inputted text back")
 		tprint("ping - Ping all players on server")
 		tprint("tasknf - Print info about received task")
-		tprint("[PREnv] stc - Set test subject subclass (Garry, Kratos, Circle, Newguy)")
+		tprint("camtp <x> <y> <z> - Teleport camera to coordinates")
+		tprint("[PREnv] stc <plyid> <clsid> - Set test subject subclass (Garry, Kratos, Circle, Newguy)")
 		tprint("[PREnv] vtstart - Vote for server start")
 		return
 	end
@@ -568,18 +580,13 @@ function tabletlib.executeCommand(cmd)
         end
         return
 	end
+	if cmd == "echo" then
+		tprint(args)
+		return
+	end
 
 	tprint("fsh: Unknown command \"" .. cmd .. "\"")
 end
-
---[[
---createWindow(100,100,160*3,90*3,"Example Window",true)
-local a = createAlertWindow(100,100,160*3,90*3,"Example Alert Window",true,
-	"WARNING! Authorise this action:\nActivate Project Avatar v2 build 58","AUTHORISE ACTION\\as Scientist#9999. Not you? Relogin")
-
-local desktop = createDesktop("project_avatar/hud/sc/tablet_wp.png", "project_avatar/hud/sc/tablet.png", ScrW(), ScrH())
-createDesktopIcon(desktop, 32, 0, 0)
-]]
 
 net.Receive("RoundEnd", function(_, ply)
 	if tabletlib.shown() then

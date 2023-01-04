@@ -1,16 +1,18 @@
 local show = false
 
-local garry = Material("project_avatar/hud/ts/garry.png")
-local kratos = Material("project_avatar/hud/ts/kratos.png")
-local newguy = Material("project_avatar/hud/ts/newguy.png")
-local circle = Material("project_avatar/hud/ts/circle.png")
+local garry = Material("project_avatar/hud/ts/illustrations/garry.png")
+local kratos = Material("project_avatar/hud/ts/illustrations/kratos.png")
+local newguy = Material("project_avatar/hud/ts/illustrations/newguy.png")
+local circle = Material("project_avatar/hud/ts/illustrations/circle.png")
 
-local score_base = Material("project_avatar/hud/ts/score_base.png")
-local score_bar = Material("project_avatar/hud/ts/score_bar.png")
+local score_base_ts = Material("project_avatar/hud/ts/tab/score_base.png")
+local score_bar_ts = Material("project_avatar/hud/ts/tab/score_bar.png")
+local score_base_sc = Material("project_avatar/hud/sc/tab/score_base.png")
+local score_bar_sc = Material("project_avatar/hud/sc/tab/score_bar.png")
 
 local mats = {garry, circle, newguy, kratos}
 local names = {"Garry", "Circle", "Newguy", "Kratos"}
-local summaries = {"The Great Hacker", "Breaking Bad", "Just a new guy", "death and destruction"}
+local summaries = {"The Great Hacker", "The PosterMaker", "Just a new guy", "death and destruction"}
 local playerclass = 0
 
 surface.CreateFont( "headfont", {
@@ -53,12 +55,12 @@ end
 local scale = (ScrH() / ScrW())
 
 hook.Add( "HUDPaint", "OnTab", function()
-    if LocalPlayer():Team() == TEAM_TESTSUBJECTS then
+    if LocalPlayer():Team() == TEAM_TESTSUBJECTS or LocalPlayer():Team() == TEAM_TESTSUBJECTS_BOOSTED then
         show = input.IsKeyDown( KEY_TAB )
         if pcall(function() LocalPlayer() end) then
             playerclass = GetSubClass(LocalPlayer())
         else
-            playerclass = 1
+            playerclass = 0
         end
 
         handlecoros()
@@ -75,9 +77,9 @@ hook.Add( "HUDPaint", "OnTab", function()
         surface.SetMaterial(mats[playerclass])
         surface.DrawTexturedRect(plyx, (ScrH()-900*scale)*0.5, 500*scale, 900*scale)
 
-        surface.SetMaterial(score_bar)
+        surface.SetMaterial(score_bar_ts)
         surface.DrawTexturedRectUV(scrx-400, (ScrH()-1100*scale)*0.5, 200*scale, 1100*scale * (score / 1000), 0, 0, 1, 1 * (score / 1000))
-        surface.SetMaterial(score_base)
+        surface.SetMaterial(score_base_ts)
         surface.DrawTexturedRect(scrx-400, (ScrH()-1100*scale)*0.5, 200*scale, 1100*scale)
 
         classname = names[playerclass]
@@ -86,7 +88,29 @@ hook.Add( "HUDPaint", "OnTab", function()
         draw.DrawText(classname, "headfont", (ScrW()*0.5)-(select(1, surface.GetTextSize( classname )) / 2), ScrH()*0.4, Color( 255, 255, 255, alpha ) )
         surface.SetFont("smallheadfont")
         draw.DrawText(classsumm, "smallheadfont", (ScrW()*0.5)-(select(1, surface.GetTextSize( classsumm )) / 2), (ScrH()*0.4)+(select(2, surface.GetTextSize( classname )) * 2), Color( 255, 255, 255, alpha ) )
+    end
 
+    if LocalPlayer():Team() == TEAM_SCIENTISTS then
+
+        handlecoros()
+        
+        score = GetGlobalInt("ScientistsScore") or 1
+        surface.SetDrawColor(0, 0, 0, alpha)
+        surface.DrawRect(0, 0, ScrW(), ScrH())
+
+        surface.SetDrawColor(255,255,255,255)
+
+        surface.SetMaterial(score_bar_sc)
+        surface.DrawTexturedRectUV(scrx-400, (ScrH()-1100*scale)*0.5, 200*scale, 1100*scale * (score / 1000), 0, 0, 1, 1 * (score / 1000))
+        surface.SetMaterial(score_base_sc)
+        surface.DrawTexturedRect(scrx-400, (ScrH()-1100*scale)*0.5, 200*scale, 1100*scale)
+
+        classname = "Scientists"
+        classsumm = "With you a new hope"
+        surface.SetFont("headfont")
+        draw.DrawText(classname, "headfont", (ScrW()*0.5)-(select(1, surface.GetTextSize( classname )) / 2), ScrH()*0.4, Color( 255, 255, 255, alpha ) )
+        surface.SetFont("smallheadfont")
+        draw.DrawText(classsumm, "smallheadfont", (ScrW()*0.5)-(select(1, surface.GetTextSize( classsumm )) / 2), (ScrH()*0.4)+(select(2, surface.GetTextSize( classname )) * 2), Color( 255, 255, 255, alpha ) )
     end
 end)
 

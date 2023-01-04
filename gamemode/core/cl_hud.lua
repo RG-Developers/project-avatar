@@ -74,23 +74,21 @@ if CLIENT then
 	local fixid = math.random(1000, 9999)
 	local fixrank = "Senior leutenant"
 	--precaching materials : scientist hud materials
-	local scn_doc_base  = Material("project_avatar/hud/sc/doc_base.png")
-	local scn_doc_1000  = Material("project_avatar/hud/sc/doc_1000.png")
-	local scn_doc_2000  = Material("project_avatar/hud/sc/doc_2000.png")
-	local scn_doc_3000  = Material("project_avatar/hud/sc/doc_3000.png")
-	local scn_doc_sigma = Material("project_avatar/hud/sc/doc_sigma.png")
-	local scn_doc_omega = Material("project_avatar/hud/sc/doc_omega.png")
+	local scn_doc_base  = Material("project_avatar/hud/sc/doc/doc_base.png")
+	local scn_doc_1000  = Material("project_avatar/hud/sc/doc/doc_1000.png")
+	local scn_doc_2000  = Material("project_avatar/hud/sc/doc/doc_2000.png")
+	local scn_doc_3000  = Material("project_avatar/hud/sc/doc/doc_3000.png")
+	local scn_doc_sigma = Material("project_avatar/hud/sc/doc/doc_sigma.png")
+	local scn_doc_omega = Material("project_avatar/hud/sc/doc/doc_omega.png")
 	local scn_mst_base  = Material("project_avatar/hud/sc/mst_base.png")
 	local scn_task	    = Material("project_avatar/hud/sc/task_pending.png")
-	local scn_scor_bar	= Material("project_avatar/hud/sc/score_bar.png")
-	local scn_scor_base	= Material("project_avatar/hud/sc/score_base.png")
 	--precaching materials : tester hud materials
 	local tst_base  = Material("project_avatar/hud/ts/base_bg.png")
 	local tst_bar   = Material("project_avatar/hud/ts/bar.png")
-	local tst_cam   = Material("project_avatar/hud/ts/camera.png")
-	local tst_crb   = Material("project_avatar/hud/ts/crossbow.png")
-	local tst_crw   = Material("project_avatar/hud/ts/crowbar.png")
-	local tst_tlg   = Material("project_avatar/hud/ts/toolgun.png")
+	--local tst_cam   = Material("project_avatar/hud/ts/action/camera.png")
+	--local tst_crb   = Material("project_avatar/hud/ts/action/crossbow.png")
+	--local tst_crw   = Material("project_avatar/hud/ts/action/crowbar.png")
+	--local tst_tlg   = Material("project_avatar/hud/ts/action/toolgun.png")
 	--precaching materials : fixer hud materials
 	local fix_base       = Material("project_avatar/hud/fx/base.png")
 	--register font
@@ -157,10 +155,6 @@ if CLIENT then
 			surface.SetDrawColor(255, 255, 255, 255)
 			surface.SetMaterial(scn_mst_base)
 			surface.DrawTexturedRect(x, y+90, 460/2, 97/2)
-			--score
-			surface.SetDrawColor( color_white )
-			surface.SetMaterial( scn_scor_bar )
-			surface.DrawTexturedRectUV( 10, ScrH() - 229 - 100, 40, 229 * (score / 1000), 0, 0, 1, 1 * (score / 1000) )
 		elseif class == TEAM_FIXERS then
 			--integrity bar
 			draw.RoundedBox( 0, x+103, y-50+74+33, ((hp * 300/1.57) / 100), 74/2, Color(66, 66, 66, 255) )

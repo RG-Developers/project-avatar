@@ -19,29 +19,27 @@ end
 if SERVER then
     util.AddNetworkString("fixBug")
     net.Receive("fixBug", function(_, ply)
-        net.ReadEntity():SetNWBool("fixing", true)
+        net.ReadEntity():SetNWBool("QTEdone", true)
     end)
 
     local minx, miny, minz, maxx, maxy, maxz = 0, 0, 0, 0, 0, 0
     
-    --[[
     hook.Add( "Think", "newguy_boost", function()
         for _,plyt in pairs(player:GetAll()) do
-            if plyt:Team() == 3 or plyt:Team() == 5 then -- ну ок, ток почини потом
+            if plyt:Team() == TEAM_TESTSUBJECTS or plyt:Team() == TEAM_TESTSUBJECTS_BOOSTED then
                 plyt:SetTeam(TEAM_TESTSUBJECTS)
                 subclass = GetSubClass(plyt)
                 if subclass == 3 then
                     local plys = ents.FindInSphere(plyt:GetPos(),600)
                     for _,v in pairs(plys) do
                         if v:IsPlayer() then
-                            v:SetTeam(5)
+                            v:SetTeam(TEAM_TESTSUBJECT_BOOSTED)
                         end
                     end
                 end
             end
         end
     end)
-    ]]--
     starttime = CurTime() + 5
     bugcount = 0
 
@@ -58,52 +56,40 @@ if SERVER then
         return nil
     end
 
-    function collectBug(entity)
-        if bugs[entity] then
-            SetGlobalInt("TestersScore", GetGlobalInt("TestersScore") + math.floor(bugs[entity]['score']))
-            --SetGlobalInt("ScientistsScore", GetGlobalInt("ScientistsScore") -  math.floor(bugs[entity]['score']))
-            entity:Remove()
-            if GetGlobalInt("TestersScore") > 500 then
-                local avatar = ents.Create("pa_avatar")
-                avatar:SetPos(Vector(0,0,0))
-                avatar:Spawn()
-            end
-            return true
-        end
-    end
-
-
     function removeBug(bug)
         bug:Remove()
     end
 
+    local maxzt, minzt, rayz, maxz, minz, maxx, minx, maxy, miny = 0, 0, 0, 0, 0, 0, 0, 0, 0
     timer.Create("createbug",10,0,function()
-        if CurTime() > starttime then
-            if bugcount < GetGlobalInt("TestersCount") then
-                local attempts = 0
-                if math.random(0, 100) > 0 then
-                    isspec = math.random(0,5) > 4
-                    local zmvalid, isinworld = false, false
-                    while (zmvalid and isinworld) == false do
-                        rx = math.random(minx, maxx)
-                        ry = math.random(miny, maxy)
-                        rz = math.random(minz, maxz)
-                        pos = Vector(rx,ry,rz)
-                        if isspec then
-                            zmvalid = util.QuickTrace(pos, Vector(0,0,-1000)).HitWorld
-                        else
-                            zmvalid = util.QuickTrace(pos, Vector(0,0,-100)).HitWorld
-                        end
-                        isinworld = util.IsInWorld(pos)
-                        if (zmvalid and isinworld) then
-                            bugcount = bugcount + 1
-                        end
-                        attempts = attempts + 1
-                        if attempts > 5 then break end
+        if bugcount < GetGlobalInt("TestersCount") then
+            local attempts = 0
+            if math.random(0, 100) > 0 then
+                isspec = math.random(0,5) > 4
+                local zmvalid, isinworld = false, false
+                while (zmvalid and isinworld) == false do
+                    rx = math.random(minx, maxx)
+                    ry = math.random(miny, maxy)
+                    rz = math.random(minz, maxz)
+                    pos = Vector(rx,ry,rz)
+                    if isspec then
+                        zmvalid = util.QuickTrace(pos, Vector(0,0,-1000)).HitWorld
+                    else
+                        zmvalid = util.QuickTrace(pos, Vector(0,0,-100)).HitWorld
                     end
+                    isinworld = util.IsInWorld(pos)
+                    if (zmvalid and isinworld) then
+                        bugcount = bugcount + 1
+                        local bug = ents.Create("pa_bug")
+                        bug:SetPos(pos)
+                        bug:Spawn()
+                        break
+                    end
+                    attempts = attempts + 1
+                    if attempts > 5 then break end
                 end
             end
-        else
+        elseif maxzt == 0 then
             maxzt = util.QuickTrace(Vector(0,0,0), Vector(0,0,1000000)).HitPos[3]
             minzt = util.QuickTrace(Vector(0,0,0), Vector(0,0,-1000000)).HitPos[3]
             rayz = (maxzt-minzt) / 2

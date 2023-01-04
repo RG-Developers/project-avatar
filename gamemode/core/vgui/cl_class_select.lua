@@ -1,9 +1,9 @@
 PANEL = {}
 
-local garry = Material("project_avatar/hud/ts/garry.png")
-local kratos = Material("project_avatar/hud/ts/kratos.png")
-local newguy = Material("project_avatar/hud/ts/newguy.png")
-local circle = Material("project_avatar/hud/ts/circle.png")
+local garry = Material("project_avatar/hud/ts/illustrations/garry.png")
+local kratos = Material("project_avatar/hud/ts/illustrations/kratos.png")
+local newguy = Material("project_avatar/hud/ts/illustrations/newguy.png")
+local circle = Material("project_avatar/hud/ts/illustrations/circle.png")
 
 local basew, baseh = 500, 900
 local scale = (ScrH() / ScrW())

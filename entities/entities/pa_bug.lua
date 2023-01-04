@@ -45,6 +45,7 @@ function ENT:OnRemove()
     self:EmitSound("/project_avatar/bugs/bugfix_"..math.random(1,2)..".wav")
     if SERVER then
         if IsValid(self:GetNWEntity("leak",nil)) then self:GetNWEntity("leak",nil):Remove() end
+        SetGlobalInt("TestersScore", GetGlobalInt("TestersScore") + math.floor(self.score))
     end
 end
 function ENT:Use(ply)
