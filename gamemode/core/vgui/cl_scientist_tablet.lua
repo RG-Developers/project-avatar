@@ -31,14 +31,17 @@ tabletlib.registercmd("ping", {"*"}, function()
         end
     end
 end, "Ping all players on server")
+
 tabletlib.registercmd("camtp", {"x", "y", "z"}, function(xyz)
     PrintTable(xyz)
     local x, y, z = tonumber(xyz[1]), tonumber(xyz[2]), tonumber(xyz[3])
     rt_offset = Vector(x, y, z)
 end, "Teleport RTCAM_0 to position")
+
 tabletlib.registercmd("echo", {"..."}, function(text)
     tprint(text)
 end, "Echo inputed text back")
+
 tabletlib.registercmd("clear", {"*"}, function()
     toverride({})
 end, "Clear screen")
